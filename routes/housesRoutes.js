@@ -3,7 +3,7 @@ import { Router } from 'express'
 const router = Router()
 
 router.get('/houses', (req, res) => {
-  res.send([
+  res.json([
     { id: 1, location: 'Italy' },
     { id: 2, location: 'Canada' },
     { id: 3, location: 'Thailand' },
@@ -12,7 +12,7 @@ router.get('/houses', (req, res) => {
 })
 
 router.get('/houses/1', (req, res) => {
-  res.send({ id: 1, location: 'Italy' })
+  res.json({ id: 1, location: 'Italy' })
 })
 
 export default router
