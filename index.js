@@ -1,8 +1,18 @@
 import express from 'express'
 import authRoute from './routes/authRoutes.js'
+import housesRoutes from './routes/housesRoutes.js'
+import usersRouter from './routes/usersRouter.js'
+import bookingsRoute from './routes/bookingsRoute.js'
+import reviewsRoutes from './routes/reviewsRoutes.js'
 
 const app = express()
 
+app.use(reviewsRoutes)
+app.use(bookingsRoute)
+app.use(housesRoutes)
+app.use(usersRouter)
 app.use(authRoute)
 
-app.listen(4100, () => console.log(`Server running on port 4100`))
+app.listen(4100, () => {
+  console.log('Airbnb API ready on localhost:4100')
+})
