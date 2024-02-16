@@ -4,9 +4,11 @@ import housesRoutes from './routes/housesRoutes.js'
 import usersRouter from './routes/usersRouter.js'
 import bookingsRoute from './routes/bookingsRoute.js'
 import reviewsRoutes from './routes/reviewsRoutes.js'
+import photosRouter from './routes/photosRoutes.js'
 
 const app = express()
 
+app.use(photosRouter)
 app.use(reviewsRoutes)
 app.use(bookingsRoute)
 app.use(housesRoutes)
