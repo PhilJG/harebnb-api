@@ -1,16 +1,32 @@
 import { Router } from 'express'
+import db from '../db.js'
+
 const router = Router()
 
-router.get('/users', (req, res) => {
-  res.json([
-    { id: 1, firstName: 'Silvia' },
-    { id: 2, firstName: 'Phil' },
-    { id: 3, firstName: 'Valeria' }
-  ])
+router.get('/users', async (req, res) => {
+  try {
+    const { rows } = await db.query('SELECT * FROM users')
+    console.log(rows)
+    res.json(rows)
+  } catch (err) {
+    console.error(err.message)
+    res.json(err)
+  }
 })
 
-router.get('/users/1', (req, res) => {
-  res.json({ id: 1, firstName: 'Silvia' })
+let userId = 1
+
+router.get(`/users/${userId}`, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT * FROM users WHERE user_id = ${userId}`
+    )
+    console.log(rows)
+    res.json(rows)
+  } catch (err) {
+    console.error(err.message)
+    res.json(err)
+  }
 })
 
 export default router
