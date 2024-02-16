@@ -1,14 +1,16 @@
 import { Router } from 'express'
+import db from '../db.js'
 
 const router = Router()
 
-router.get('/houses', (req, res) => {
-  res.json([
-    { id: 1, location: 'Italy' },
-    { id: 2, location: 'Canada' },
-    { id: 3, location: 'Thailand' },
-    { id: 4, location: 'Spain' }
-  ])
+router.get('/houses', async (req, res) => {
+  try {
+    const { rows } = await db.query(`SELECT * FROM houses`)
+    res.json(rows)
+  } catch (err) {
+    console.log(err.message)
+    res.json(err)
+  }
 })
 
 router.get('/houses/1', (req, res) => {
