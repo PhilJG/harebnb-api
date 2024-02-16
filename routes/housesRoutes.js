@@ -9,12 +9,23 @@ router.get('/houses', async (req, res) => {
     res.json(rows)
   } catch (err) {
     console.log(err.message)
-    res.json(err)
+    res.json({ error: err.message })
   }
 })
 
-router.get('/houses/1', (req, res) => {
-  res.json({ id: 1, location: 'Italy' })
+let houseId = 1
+
+router.get(`/houses/${houseId}`, async (req, res) => {
+  try {
+    const { rows } = await db.query(
+      `SELECT * FROM houses WHERE house_id = ${houseId}`
+    )
+    res.json(rows)
+    res.json(rows)
+  } catch (err) {
+    console.log(err.message)
+    res.json({ error: err.message })
+  }
 })
 
 export default router
