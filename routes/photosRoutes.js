@@ -3,7 +3,7 @@ import db from '../db.js'
 
 const router = Router()
 
-router.get('/houses-pictures', async (req, res) => {
+router.get('/photos', async (req, res) => {
   try {
     const { rows } = await db.query('SELECT * FROM houses_pictures')
     console.log(rows)
@@ -16,7 +16,7 @@ router.get('/houses-pictures', async (req, res) => {
 
 let photoId = 11
 
-router.get(`/houses-pictures/${photoId}`, async (req, res) => {
+router.get(`/photos/${photoId}`, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT * FROM houses_pictures WHERE photo_id = ${photoId}`
