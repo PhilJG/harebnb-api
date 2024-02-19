@@ -3,6 +3,8 @@ import db from '../db.js'
 
 const router = Router()
 
+// this route gets all the houses
+
 router.get('/houses', async (req, res) => {
   try {
     const { rows } = await db.query(`SELECT * FROM houses`)
@@ -13,14 +15,19 @@ router.get('/houses', async (req, res) => {
   }
 })
 
-let houseId = 1
+// this route gets a specific house ID based on the route parameter
 
-router.get(`/houses/${houseId}`, async (req, res) => {
+router.get('/houses/:houseId', async (req, res) => {
+  let houseId = req.params.houseId
   try {
     const { rows } = await db.query(
       `SELECT * FROM houses WHERE house_id = ${houseId}`
     )
-    res.json(rows)
+    //if the array is empty throws a specific error
+    if (!rows.length) {
+      throw new Error(`The house Id number ${houseId} does not exist.`)
+    }
+    console.log(rows)
     res.json(rows)
   } catch (err) {
     console.log(err.message)
