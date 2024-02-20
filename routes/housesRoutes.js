@@ -3,34 +3,39 @@ import db from '../db.js'
 
 const router = Router()
 
-// this route gets all the houses
+// route gets all the houses and if there is a query it gives the results of the query
 
 router.get('/houses', async (req, res) => {
-  let queryString = ''
+  let queryString = 'SELECT * FROM houses WHERE 1 = 1'
+  const { location, max_price, min_rooms, sort, search, order } = req.query
   try {
-    if (req.query.location) {
-      queryString += req.query.location
+    if (location) {
+      queryString += ` AND location = '${location}'`
     }
-    if (!queryString) {
-      const { rows } = await db.query(`SELECT * FROM houses`)
-      res.json(rows)
-    } else {
-      const { rows } = await db.query(
-        `SELECT * FROM houses WHERE location = '${queryString}'`
-      )
-      res.json(rows)
+    if (max_price) {
+      queryString += ` AND price_per_night <= ${max_price}`
     }
+    if (min_rooms) {
+      queryString += ` AND bedrooms <= ${min_rooms}`
+    }
+    if (search) {
+      queryString += ` AND description LIKE '%${search}%'`
+    }
+    if (sort === 'price') {
+      queryString += ` ORDER BY price_per_night ${order}'`
+    }
+    if (sort === 'bedrooms') {
+      queryString += ` ORDER BY bedrooms ${order}`
+    }
+    const { rows } = await db.query(queryString)
+    if (!rows.length) {
+      throw new Error(`There is no house corresponding to this query.`)
+    }
+    res.json(rows)
   } catch (err) {
     console.log(err.message)
     res.json({ error: err.message })
   }
-})
-router.get('/houses', async (req, res) => {
-  const { rows } = await db.query(
-    `SELECT * FROM houses WHERE location = ${location}`
-  )
-  console.log(rows)
-  res.json(rows)
 })
 
 // this route gets a specific house ID based on the route parameter
