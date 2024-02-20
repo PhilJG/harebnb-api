@@ -14,13 +14,17 @@ router.get('/reviews', async (req, res) => {
   }
 })
 
-let reviewId = 2
+router.get(`/reviews/:reviewId`, async (req, res) => {
+  let reviewId = req.params.reviewId
+  console.log(reviewId)
 
-router.get(`/reviews/${reviewId}`, async (req, res) => {
   try {
     const { rows } = await db.query(
       `SELECT * FROM reviews WHERE review_id = ${reviewId}`
     )
+    if (!rows.length) {
+      throw new Error(`Review ID ${reviewId} not found`)
+    }
     res.json(rows)
     console.log(rows)
   } catch (err) {
