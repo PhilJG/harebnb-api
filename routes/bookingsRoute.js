@@ -15,15 +15,20 @@ router.get('/bookings', async (req, res) => {
   }
 })
 
-router.get('/bookings/1', async (req, res) => {
-  // don't forget async
+router.get('/bookings/:bookingId', async (req, res) => {
+  let bookingId = req.params.bookingId
   try {
-    const { rows } = await db.query('SELECT * FROM bookings WHERE user_id = 1') // query the database
+    const { rows } = await db.query(
+      `SELECT * FROM bookings WHERE booking_id = ${bookingId}`
+    )
+    if (!rows.length) {
+      throw new Error(`The booking Id number ${bookingId} does not exist.`)
+    }
     console.log(rows)
-    res.json(rows) // respond with the data
+    res.json(rows)
   } catch (err) {
     console.error(err.message)
-    res.json(err)
+    res.json({ error: err.message })
   }
 })
 
