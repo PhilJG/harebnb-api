@@ -15,6 +15,8 @@ app.use(housesRoutes)
 app.use(usersRouter)
 app.use(authRoute)
 
+console.log('all good')
+
 app.listen(4100, () => {
-  console.log('Airbnb API ready on localhost:4100')
+  console.log('Airbnb IS API ready on localhost:4100')
 })

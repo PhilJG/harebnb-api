@@ -6,7 +6,8 @@ const router = Router()
 // route gets all the houses and if there is a query it gives the results of the query
 
 router.get('/houses', async (req, res) => {
-  let queryString = 'SELECT * FROM houses WHERE 1 = 1'
+  let queryString = 'SELECT * FROM houses WHERE TRUE'
+  console.log(queryString)
   const { location, max_price, min_rooms, sort, search, order } = req.query
   try {
     if (location) {
@@ -27,6 +28,7 @@ router.get('/houses', async (req, res) => {
     if (sort === 'bedrooms') {
       queryString += ` ORDER BY bedrooms ${order}`
     }
+    console.log(queryString)
     const { rows } = await db.query(queryString)
     if (!rows.length) {
       throw new Error(`There is no house corresponding to this query.`)
