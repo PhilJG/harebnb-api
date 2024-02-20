@@ -8,6 +8,9 @@ import photosRouter from './routes/photosRoutes.js'
 
 const app = express()
 
+//middleware
+app.use(express.json())
+
 app.use(photosRouter)
 app.use(reviewsRoutes)
 app.use(bookingsRoute)
