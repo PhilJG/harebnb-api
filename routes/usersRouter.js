@@ -14,18 +14,20 @@ router.get('/users', async (req, res) => {
   }
 })
 
-let userId = 1
-
-router.get(`/users/${userId}`, async (req, res) => {
+router.get('/users/:userId', async (req, res) => {
+  let userId = req.params.userId
   try {
     const { rows } = await db.query(
       `SELECT * FROM users WHERE user_id = ${userId}`
     )
+    if (!rows.length) {
+      throw new Error(`The user Id number ${userId} does not exist.`)
+    }
     console.log(rows)
     res.json(rows)
   } catch (err) {
     console.error(err.message)
-    res.json(err)
+    res.json({ error: err.message })
   }
 })
 
