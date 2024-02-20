@@ -1,20 +1,33 @@
 import { Router } from 'express'
-import db from '../db.js' // import the database connection
+import db from '../db.js' // import database connection
 
 const router = Router()
 
+//
 router.get('/bookings', async (req, res) => {
-  // don't forget async
+  let userBooking = ''
+  let userId = req.query.user
+
   try {
-    const { rows } = await db.query('SELECT * FROM bookings') // query the database
-    console.log(rows)
-    res.json(rows) // respond with the data
+    if (userId) {
+      userBooking = `SELECT * FROM bookings WHERE user_id = ${userId} ORDER BY check_in DESC`
+    }
+    if (!userId) {
+      userBooking = `SELECT * FROM bookings ORDER BY check_in DESC`
+    }
+    console.log(userBooking)
+    const { rows } = await db.query(userBooking)
+    if (!rows.length) {
+      throw new Error(`There is no booking corresponding to this user.`)
+    }
+    res.json(rows)
   } catch (err) {
     console.error(err.message)
-    res.json(err)
+    res.json({ error: err.message })
   }
 })
 
+// route to a specific house if with params
 router.get('/bookings/:bookingId', async (req, res) => {
   let bookingId = req.params.bookingId
   try {
