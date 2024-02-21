@@ -1,8 +1,8 @@
 import express from 'express'
 import authRoute from './routes/authRoutes.js'
 import housesRoutes from './routes/housesRoutes.js'
-import usersRouter from './routes/usersRoutes.js'
-import bookingsRoute from './routes/bookingsRoute.js'
+import usersRouter from './routes/usersRouter.js'
+import bookingsRoute from './routes/bookingsRoutes.js'
 import reviewsRoutes from './routes/reviewsRoutes.js'
 import photosRouter from './routes/photosRoutes.js'
 
