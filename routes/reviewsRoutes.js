@@ -4,20 +4,9 @@ import db from '../db.js'
 const router = Router()
 
 router.get('/reviews', async (req, res) => {
-  let { house } = req.query
-
-  let queryString = 'SELECT * FROM reviews '
-
   try {
-    if (house) {
-      queryString += `WHERE house_id = ${house}`
-    } else if (house === undefined) {
-      queryString += ' ORDER BY date DESC'
-    }
-    const { rows } = await db.query(queryString)
-    if (!rows.length) {
-      throw new Error(`The house Id number ${house} does not exist.`)
-    }
+    const { rows } = await db.query(`SELECT * FROM reviews`)
+    console.log(rows)
     res.json(rows)
   } catch (err) {
     console.error(err.message)
