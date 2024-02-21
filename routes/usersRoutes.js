@@ -31,4 +31,15 @@ router.get('/users/:userId', async (req, res) => {
   }
 })
 
+router.delete('/houses/:house_id', async (req, res) => {
+  let queryString = `DELETE FROM houses WHERE house_id = ${req.params.house_id}`
+  try {
+    const { rows } = await db.query(queryString)
+    throw new Error('Wrong')
+    res.json(rows[0])
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
 export default router
