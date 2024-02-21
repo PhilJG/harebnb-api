@@ -3,6 +3,26 @@ import db from '../db.js'
 
 const router = Router()
 
+// send post request
+
+router.post('/reviews', async (req, res) => {
+  const { date, review, rating, user_id, house_id } = req.body
+  const postQueryString = `INSERT INTO reviews (date, review, rating, user_id, house_id)
+  VALUES ('${date}', '${review}', ${rating}, ${user_id}, ${house_id} )
+  RETURNING * `
+
+  try {
+    console.log(postQueryString)
+    const { rows } = await db.query(postQueryString)
+    res.json(rows)
+  } catch (err) {
+    console.error(err.message)
+    res.json({ error: err.message })
+  }
+})
+
+// send reviews queries
+
 router.get('/reviews', async (req, res) => {
   try {
     const { rows } = await db.query(`SELECT * FROM reviews`)
