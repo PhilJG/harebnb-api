@@ -9,11 +9,11 @@ router.post('/houses', async (req, res) => {
 
   const queryString = `INSERT INTO houses (location, price_per_night, bedroom, bathroom, description, user_id)
   VALUES (
-    '${location}', 
-    ${price_per_night}, 
-    ${bedroom}, 
-    ${bathroom}, 
-    '${description}', 
+    '${location}',
+    ${price_per_night},
+    ${bedroom},
+    ${bathroom},
+    '${description}',
     ${user_id})`
 
   console.log(queryString)
@@ -79,6 +79,58 @@ router.get('/houses/:houseId', async (req, res) => {
     }
     console.log(rows)
     res.json(rows)
+  } catch (err) {
+    console.log(err.message)
+    res.json({ error: err.message })
+  }
+})
+
+// patch houses route
+
+router.patch('/houses/:houseId', async (req, res) => {
+  let houseId = req.params.houseId
+  const { location, price_per_night, bedroom, bathroom, description, user_id } =
+    req.body
+  let patchQueryString = ` UPDATE houses`
+  try {
+    if (
+      location ||
+      price_per_night ||
+      bedroom ||
+      bathroom ||
+      description ||
+      user_id
+    ) {
+      patchQueryString += ` SET`
+      if (location) {
+        patchQueryString += ` location = '${location}',`
+      }
+      if (price_per_night) {
+        patchQueryString += ` price_per_night = ${price_per_night},`
+      }
+      if (bedroom) {
+        patchQueryString += ` bedroom = ${bedroom},`
+      }
+      if (bathroom) {
+        patchQueryString += ` bathroom = ${bathroom},`
+      }
+      if (description) {
+        patchQueryString += ` description = '${description}',`
+      }
+      if (user_id) {
+        patchQueryString += ` user_id = ${user_id},`
+      }
+
+      patchQueryString = patchQueryString.slice(0, -1)
+      patchQueryString += ` WHERE house_id = ${houseId} RETURNING *`
+    }
+
+    const resQuery = await db.query(patchQueryString)
+    const { rowCount, rows } = resQuery
+    if (rowCount === 0) {
+      throw new Error(`There is no house corresponding to this query.`)
+    }
+    res.json(rows[0])
   } catch (err) {
     console.log(err.message)
     res.json({ error: err.message })
