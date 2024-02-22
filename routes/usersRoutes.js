@@ -68,4 +68,5 @@ router.patch('/users/:user_id', async (req, res) => {
     res.json({ error: err.message })
   }
 })
+
 export default router
