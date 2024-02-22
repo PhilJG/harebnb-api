@@ -3,9 +3,6 @@ import db from '../db.js'
 
 const router = Router()
 
-<<<<<<< Updated upstream
-=======
-//POST PHOTOS ROUTE
 router.post('/photos', async (req, res) => {
   const { photo_url, house_id } = req.body
   console.log(req.body)
@@ -24,7 +21,6 @@ router.post('/photos', async (req, res) => {
 })
 
 // GET PHOTOS ROUTES
->>>>>>> Stashed changes
 router.get('/photos', async (req, res) => {
   let houseId = req.query.house
 
