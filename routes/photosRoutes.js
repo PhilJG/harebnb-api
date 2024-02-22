@@ -3,7 +3,6 @@ import db from '../db.js'
 
 const router = Router()
 
-//POST PHOTOS ROUTES
 router.post('/photos', async (req, res) => {
   const { photo_url, house_id } = req.body
   console.log(req.body)
@@ -56,6 +55,29 @@ router.get('/photos/:photoId', async (req, res) => {
     if (!rows.length) {
       throw new Error(`The photo Id number ${photoId} does not exist.`)
     }
+    console.log(rows)
+    res.json(rows)
+  } catch (err) {
+    console.error(err.message)
+    res.json({ error: err.message })
+  }
+})
+
+////PATCH PHOTOS ID ROUTE
+router.patch('/photos/:photoId', async (req, res) => {
+  let photoIdPatch = req.params.photoId
+  let photoUrl = req.body.photo_url
+
+  try {
+    const { rows } = await db.query(`UPDATE houses_pictures
+      SET photo_url = '${photoUrl}'
+      WHERE photo_id = ${photoIdPatch} 
+      RETURNING photo_url `)
+
+    if (!rows.length) {
+      throw new Error('The house ID provided is not valid')
+    }
+
     console.log(rows)
     res.json(rows)
   } catch (err) {
