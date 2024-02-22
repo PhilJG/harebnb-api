@@ -42,13 +42,21 @@ router.get(`/reviews/:reviewId`, async (req, res) => {
     const { rows } = await db.query(
       `SELECT * FROM reviews WHERE review_id = ${reviewId}`
     )
-    if (!rows.length) {
-      throw new Error(`Review ID ${reviewId} not found`)
-    }
     res.json(rows)
     console.log(rows)
   } catch (err) {
     console.error(err.message)
+    res.json({ error: err.message })
+  }
+})
+
+router.delete('/reviews/:review_id', async (req, res) => {
+  let deleteQueryString = `DELETE FROM reviews WHERE review_id = ${req.params.review_id}`
+  console.log(deleteQueryString)
+  const { rows } = await db.query(deleteQueryString)
+  try {
+    res.json(rows[0])
+  } catch (err) {
     res.json({ error: err.message })
   }
 })
