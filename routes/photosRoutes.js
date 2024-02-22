@@ -3,6 +3,25 @@ import db from '../db.js'
 
 const router = Router()
 
+//POST PHOTOS ROUTES
+router.post('/photos', async (req, res) => {
+  const { photo_url, house_id } = req.body
+  console.log(req.body)
+
+  const newPhotoQuery = `INSERT INTO houses_pictures (photo_url, house_id)
+      VALUES ('${photo_url}', ${house_id})
+      RETURNING * `
+  console.log(newPhotoQuery)
+  try {
+    const { rows } = await db.query(newPhotoQuery)
+    res.json(rows)
+  } catch (err) {
+    console.error(err.message)
+    res.json({ error: err.message })
+  }
+})
+
+// GET PHOTOS ROUTES
 router.get('/photos', async (req, res) => {
   let houseId = req.query.house
 
