@@ -36,38 +36,44 @@ router.post('/signup', async (req, res) => {
     console.log(token)
     // creating the cookie
     res.cookie('jwt', token)
-    res.json(insertion.rows[0])
+    res.json({ message: 'logged in' })
   } catch (err) {
     res.json({ error: err.message })
   }
 })
 //LOGIN POST user already in DB
 router.post('/login', async (req, res) => {
-  const { password, email, user_id } = req.body
-  let dbpassword = `SELECT users.password FROM users WHERE users.email = '${email}'`
+  const { password, email, user_id, first_name, last_name } = req.body
+  let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
   try {
     let { rows } = await db.query(dbpassword)
-    console.log(rows[0])
+
     const isPswValid = await bcrypt.compare(password, rows[0].password)
-    console.log(isPswValid)
-    
+
     if (rows.length === 0) {
       throw new Error('User not found or password incorrect')
     }
+
     if (isPswValid) {
       let payload = {
-        email: email,
-        user_id: user_id
+        email: rows[0].email,
+        user_id: rows[0].user_id
       }
-    //   let token = jwt.sign(payload, jwtSecret)
-    //   res.cookie('jwt', token)
-    //   res.json({ rows }.rows[0])
-    // }
+
+      let token = jwt.sign(payload, jwtSecret)
+      res.cookie('jwt', token)
+
+      res.json(`${rows[0].last_name} you are logged in`)
+    }
   } catch (err) {
     res.json({ error: err.message })
   }
 })
+
+// Logout user
 router.get('/logout', (req, res) => {
-  res.send('log out')
+  res.clearCookie('jwt')
+  res.send('You are logged out')
 })
+
 export default router
