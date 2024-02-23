@@ -21,15 +21,18 @@ router.post('/signup', async (req, res) => {
       throw new Error('Email already exists')
     }
 
+    //hash the password
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(newUser.password, salt)
 
+    //create the user
     const queryString = `INSERT INTO users (first_name, last_name, email, password)
     VALUES ('${newUser.first_name}', '${newUser.last_name}', '${newUser.email}', '${hashedPassword}')
     RETURNING user_id, email`
 
     const insertion = await db.query(queryString)
 
+    //creating the token
     let payload = {
       email: newUser.email,
       user_id: newUser.user_id
@@ -40,6 +43,7 @@ router.post('/signup', async (req, res) => {
     let token = jwt.sign(payload, jwtSecret)
     console.log(token)
 
+    // creating the cookie
     res.cookie('jwt', token)
     res.json(insertion.rows[0])
   } catch (err) {
