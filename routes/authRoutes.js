@@ -1,29 +1,55 @@
 import { Router } from 'express'
 import db from '../db.js'
+import jwt from 'jsonwebtoken'
+import { jwtSecret } from '../secrets.js'
+import bcrypt from 'bcrypt'
 
 const router = Router()
 
-//Signup or create a new user
+//Signup POST or create a new user
 router.post('/signup', async (req, res) => {
-  const newUser = req.body
-
-  const queryString = `INSERT INTO users (first_name, last_name, email, password)
-    VALUES ('${newUser.first_name}', '${newUser.last_name}', '${newUser.email}', '${newUser.password}')
-    RETURNING first_name, last_name, email`
-
   try {
+    const newUser = req.body
+
+    // check if user email exists
+    const queryResult = await db.query(`
+    SELECT * FROM users 
+    WHERE email ='${newUser.email}'
+    `)
+
+    if (queryResult.rowCount) {
+      throw new Error('Email already exists')
+    }
+
+    const salt = await bcrypt.genSalt(10)
+    const hashedPassword = await bcrypt.hash(newUser.password, salt)
+
+    const queryString = `INSERT INTO users (first_name, last_name, email, password)
+    VALUES ('${newUser.first_name}', '${newUser.last_name}', '${newUser.email}', '${hashedPassword}')
+    RETURNING user_id, email`
+
     const insertion = await db.query(queryString)
 
+    let payload = {
+      email: newUser.email,
+      user_id: newUser.user_id
+    }
+
+    console.log(payload)
+
+    let token = jwt.sign(payload, jwtSecret)
+    console.log(token)
+
+    res.cookie('jwt', token)
     res.json(insertion.rows[0])
   } catch (err) {
     res.json({ error: err.message })
   }
 })
 
+//LOGIN POST user already in DB
 router.post('/login', async (req, res) => {
   const { password, email } = req.body
-  console.log(email)
-  console.log(password)
 
   const queryString = `SELECT * FROM users WHERE users.email = '${email}' AND users.password = '${password}'`
 
