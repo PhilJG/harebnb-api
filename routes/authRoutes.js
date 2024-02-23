@@ -37,11 +37,7 @@ router.post('/signup', async (req, res) => {
       email: newUser.email,
       user_id: newUser.user_id
     }
-
-    console.log(payload)
-
     let token = jwt.sign(payload, jwtSecret)
-    console.log(token)
 
     // creating the cookie
     res.cookie('jwt', token)
@@ -68,9 +64,18 @@ router.post('/login', async (req, res) => {
     }
     //comparing passwords
     const isPasswordValid = await bcrypt.compare(password, rows[0].password)
+    if (isPasswordValid) {
+      //returning a message confirmation
 
-    //returning a message confirmation
-    res.json(`Hi ${rows[0].first_name} your are now logged in`)
+      //create token
+      let payload = {
+        email: rows[0].email,
+        user_id: rows[0].user_id
+      }
+      let token = jwt.sign(payload, jwtSecret)
+      res.cookie('jwt', token)
+      res.json(`Hi ${rows[0].first_name} your are now logged in`)
+    }
   } catch (err) {
     res.json({ error: err.message })
   }
