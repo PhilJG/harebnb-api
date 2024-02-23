@@ -37,11 +37,7 @@ router.post('/signup', async (req, res) => {
       email: newUser.email,
       user_id: newUser.user_id
     }
-
-    console.log(payload)
-
     let token = jwt.sign(payload, jwtSecret)
-    console.log(token)
 
     // creating the cookie
     res.cookie('jwt', token)
@@ -53,16 +49,33 @@ router.post('/signup', async (req, res) => {
 
 //LOGIN POST user already in DB
 router.post('/login', async (req, res) => {
-  const { password, email } = req.body
-
-  const queryString = `SELECT * FROM users WHERE users.email = '${email}' AND users.password = '${password}'`
-
   try {
+    // tell where the info is coming from
+    const { password, email } = req.body
+
+    //storing the query as a string
+    const queryString = `SELECT * FROM users WHERE users.email = '${email}'`
+    //querying the data base and getting data in the form of rows
     const { rows } = await db.query(queryString)
+
+    //checking if rows are empty
     if (rows.length === 0) {
       throw new Error('User not found or password incorrect')
     }
-    res.json({ rows }.rows[0])
+    //comparing passwords
+    const isPasswordValid = await bcrypt.compare(password, rows[0].password)
+    if (isPasswordValid) {
+      //returning a message confirmation
+
+      //create token
+      let payload = {
+        email: rows[0].email,
+        user_id: rows[0].user_id
+      }
+      let token = jwt.sign(payload, jwtSecret)
+      res.cookie('jwt', token)
+      res.json(`Hi ${rows[0].first_name} your are now logged in`)
+    }
   } catch (err) {
     res.json({ error: err.message })
   }
