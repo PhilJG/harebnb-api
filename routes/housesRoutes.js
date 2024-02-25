@@ -12,6 +12,7 @@ router.post('/houses', async (req, res) => {
 
     //declare the token from the jwt property in the cookie
     let token = req.cookies.jwt
+
     // if token doesn't exist throw error
     if (!token) {
       throw new Error('Invalid authentication token')
