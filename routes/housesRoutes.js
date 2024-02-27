@@ -1,30 +1,46 @@
 import { Router } from 'express'
 import db from '../db.js'
+import { jwtSecret } from '../secrets.js'
+import jwt from 'jsonwebtoken'
 
 const router = Router()
 
 router.post('/houses', async (req, res) => {
-  const { location, price_per_night, bedroom, bathroom, description, user_id } =
-    req.body
-
-  const queryString = `INSERT INTO houses (location, price_per_night, bedroom, bathroom, description, user_id)
-  VALUES (
-    '${location}',
-    ${price_per_night},
-    ${bedroom},
-    ${bathroom},
-    '${description}',
-    ${user_id})`
-
-  console.log(queryString)
-
   try {
-    const insert = await db.query(queryString)
-    console.log(insert)
+    const { location, price_per_night, bedroom, bathroom, description } =
+      req.body
 
-    res.json(insert)
+    //declare the token from the jwt property in the cookie
+    let token = req.cookies.jwt
+
+    // if token doesn't exist throw error
+    if (!token) {
+      throw new Error('Invalid authentication token')
+    }
+
+    //else if token does exist verify user_id from the token
+    const { user_id } = jwt.verify(token, jwtSecret)
+
+    const queryString = `INSERT INTO houses (location, price_per_night, bedroom, bathroom, description, user_id)
+    VALUES (
+      '${location}',
+      ${price_per_night},
+      ${bedroom},
+      ${bathroom},
+      '${description}',
+      ${user_id}) 
+      RETURNING *`
+
+    // console.log(queryString)
+
+    console.log(token)
+
+    const { rows } = await db.query(queryString)
+    console.log(rows)
+
+    res.json(rows)
   } catch (err) {
-    res.json(err.message)
+    res.json({ error: err.message })
   }
 })
 

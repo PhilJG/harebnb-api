@@ -1,5 +1,6 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
+
 import authRoute from './routes/authRoutes.js'
 import housesRoutes from './routes/housesRoutes.js'
 import usersRouter from './routes/usersRoutes.js'
