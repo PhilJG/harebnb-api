@@ -9,6 +9,7 @@ const router = Router()
 router.post('/signup', async (req, res) => {
   try {
     const newUser = req.body
+    console.log(newUser)
     // check if user email exists
     const queryResult = await db.query(`
     SELECT * FROM users
@@ -18,22 +19,29 @@ router.post('/signup', async (req, res) => {
       throw new Error('Email already exists')
     }
     //hash the password
-    const salt = await bcrypt.genSalt(10)
+    const salt = await bcrypt.genSalt(9)
     const hashedPassword = await bcrypt.hash(newUser.password, salt)
+
     //create the user
-    const queryString = `INSERT INTO users (first_name, last_name, email, password)
-    VALUES ('${newUser.first_name}', '${newUser.last_name}', '${newUser.email}', '${hashedPassword}')
-    RETURNING user_id, email`
-    const insertion = await db.query(queryString)
+    const queryString = `INSERT INTO users (first_name, last_name, email, password, profile_pic)
+VALUES ($1, $2, $3, $4, $5)
+RETURNING user_id, email`
+    const values = [
+      newUser.first_name,
+      newUser.last_name,
+      newUser.email,
+      hashedPassword,
+      newUser.profile_pic
+    ]
+    const insertion = await db.query(queryString, values)
+
     //creating the token
     let payload = {
       email: newUser.email,
       user_id: newUser.user_id
     }
-    console.log(payload)
     //Generate a token
     let token = jwt.sign(payload, jwtSecret)
-    console.log(token)
     // creating the cookie
     res.cookie('jwt', token)
     res.json({ message: 'logged in' })
