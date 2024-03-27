@@ -1,5 +1,6 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
+import 'dotenv/config'
 
 import authRoute from './routes/authRoutes.js'
 import housesRoutes from './routes/housesRoutes.js'
@@ -23,6 +24,6 @@ app.use(authRoute)
 
 console.log('all good')
 
-app.listen(4100, () => {
-  console.log('Airbnb IS API ready on localhost:4100')
+app.listen(process.env.PORT, () => {
+  console.log('Airbnb IS API ready')
 })
