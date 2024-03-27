@@ -1,6 +1,6 @@
 import { Router } from 'express'
 import db from '../db.js'
-import { jwtSecret } from '../secrets.js'
+// import { jwtSecret } from '../secrets.js'
 import jwt from 'jsonwebtoken'
 
 const router = Router()
@@ -19,7 +19,7 @@ router.post('/houses', async (req, res) => {
     }
 
     //else if token does exist verify user_id from the token
-    const { user_id } = jwt.verify(token, jwtSecret)
+    const { user_id } = jwt.verify(token, process.env.PRIVATE_KEY)
 
     const queryString = `INSERT INTO houses (location, price_per_night, bedroom, bathroom, description, user_id)
     VALUES (
