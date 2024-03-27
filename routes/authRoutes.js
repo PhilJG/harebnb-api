@@ -1,7 +1,7 @@
 import { Router } from 'express'
 import db from '../db.js'
 import jwt from 'jsonwebtoken'
-import { jwtSecret } from '../secrets.js'
+// import { jwtSecret } from '../secrets.js'
 import bcrypt from 'bcrypt'
 const router = Router()
 
@@ -41,7 +41,7 @@ RETURNING user_id, email`
       user_id: newUser.user_id
     }
     //Generate a token
-    let token = jwt.sign(payload, jwtSecret)
+    let token = jwt.sign(payload, process.env.PRIVATE_KEY)
     // creating the cookie
     res.cookie('jwt', token)
     res.json({ message: 'logged in' })
@@ -68,7 +68,7 @@ router.post('/login', async (req, res) => {
         user_id: rows[0].user_id
       }
 
-      let token = jwt.sign(payload, jwtSecret)
+      let token = jwt.sign(payload, process.env.PRIVATE_KEY)
       res.cookie('jwt', token)
 
       res.json(`${rows[0].last_name} you are logged in`)
