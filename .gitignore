@@ -1,5 +1,6 @@
 #secrets
 secrets.js
+.env
 
 # Logs
 logs
