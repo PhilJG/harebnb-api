@@ -11,12 +11,12 @@ router.post('/signup', async (req, res) => {
     const newUser = req.body
     console.log(newUser)
     // check if user email exists
-    const queryResult = await db.query(`
-    SELECT * FROM users
-    WHERE email ='${newUser.email}'
-    `)
+    const queryResult = await db.query('SELECT * FROM users WHERE email = $1', [
+      newUser.email
+    ])
     if (queryResult.rowCount) {
-      throw new Error('Email already exists')
+      return res.status(400).json({ error: 'Email already exists' })
+      // throw new Error('Email already exists')
     }
     //hash the password
     const salt = await bcrypt.genSalt(9)
@@ -46,7 +46,7 @@ RETURNING user_id, email`
     res.cookie('jwt', token)
     res.json({ message: 'logged in' })
   } catch (err) {
-    res.json({ error: err })
+    res.json({ error: err.message })
   }
 })
 //LOGIN POST user already in DB
