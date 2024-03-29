@@ -30,8 +30,6 @@ app.use(housesRoutes)
 app.use(usersRouter)
 app.use(authRoute)
 
-console.log('all good')
-
 app.listen(process.env.PORT || 4000, () => {
   console.log(`Airpnp server is running on ${process.env.PORT || 4000}`)
 })
