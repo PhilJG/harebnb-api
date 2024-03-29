@@ -25,5 +25,7 @@ app.use(authRoute)
 console.log('all good')
 
 app.listen(process.env.PORT, () => {
-  console.log('Airbnb IS API ready')
+  console.log(
+    `Airpnp server is running on http://localhost:${process.env.PORT}`
+  )
 })
