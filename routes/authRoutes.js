@@ -1,22 +1,39 @@
 import { Router } from 'express'
 import db from '../db.js'
 import jwt from 'jsonwebtoken'
-// import { jwtSecret } from '../secrets.js'
 import bcrypt from 'bcrypt'
 const router = Router()
+const jwtSecret = process.env.JWT_SECRET
 
 //Signup POST or create a new user
 router.post('/signup', async (req, res) => {
   try {
-    const newUser = req.body
-    console.log(newUser)
-    // check if user email exists
-    const queryResult = await db.query('SELECT * FROM users WHERE email = $1', [
-      newUser.email
-    ])
-    if (queryResult.rowCount) {
-      return res.status(400).json({ error: 'Email already exists' })
-      // throw new Error('Email already exists')
+    if (!req.body.email) {
+      throw new Error('Email is required')
+    }
+    if (!req.body.password) {
+      throw new Error('Password is required')
+    }
+    if (!req.body.first_name) {
+      throw new Error('First name is required')
+    }
+    if (!req.body.last_name) {
+      throw new Error('Last name is required')
+    }
+    if (!req.body.picture) {
+      throw new Error('picture is required')
+    }
+    //Other validation
+    if (req.body.password.length < 6) {
+      throw new Error('Password must be at least 6 characters')
+    }
+    //Check for duplicate email
+    const userExists = await db.query(
+      `SELECT * FROM users WHERE email = ${req.body.email}`
+    )
+
+    if (userExists.rows.length) {
+      throw new Error('User already exists')
     }
     //hash the password
     const salt = await bcrypt.genSalt(9)
@@ -33,22 +50,20 @@ RETURNING user_id, email`
       hashedPassword,
       newUser.profile_pic
     ]
-    const insertion = await db.query(queryString, values)
 
+    let user = rows[0]
     //creating the token
-    let payload = {
-      email: newUser.email,
-      user_id: newUser.user_id
-    }
-    //Generate a token
-    let token = jwt.sign(payload, process.env.PRIVATE_KEY)
-    // creating the cookie
+    consttoken = jwt.sign({ user_id: user.user_id }, jwtSecret)
     res.cookie('jwt', token)
-    res.json({ message: 'logged in' })
+    //compose response
+    delete user.password
+    //Respond
+    res.json(user)
   } catch (err) {
     res.json({ error: err.message })
   }
 })
+
 //LOGIN POST user already in DB
 router.post('/login', async (req, res) => {
   const { password, email, user_id, first_name, last_name } = req.body
@@ -68,7 +83,7 @@ router.post('/login', async (req, res) => {
         user_id: rows[0].user_id
       }
 
-      let token = jwt.sign(payload, process.env.PRIVATE_KEY)
+      let token = jwt.sign(payload, jwtSecret)
       res.cookie('jwt', token)
 
       res.json(`${rows[0].last_name} you are logged in`)
