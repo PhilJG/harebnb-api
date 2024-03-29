@@ -1,6 +1,7 @@
 // db.js
 import pg from 'pg'
 // import { DBURL } from './secrets.js'
+import 'dotenv/config'
 
 const { Pool } = pg
 
@@ -10,7 +11,7 @@ const db = new Pool({
   ssl: {
     rejectUnauthorized: false
   },
-  connectionString: `${process.env.DATABASE_CONNECTION}`
+  connectionString: process.env.DATABASE_CONNECTION
 })
 
 export default db
