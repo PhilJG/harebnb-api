@@ -46,7 +46,7 @@ RETURNING user_id, email`
     res.cookie('jwt', token)
     res.json({ message: 'logged in' })
   } catch (err) {
-    res.json({ error: err.message })
+    res.json({ error: err })
   }
 })
 //LOGIN POST user already in DB
