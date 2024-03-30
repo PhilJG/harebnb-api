@@ -37,7 +37,7 @@ router.post('/signup', async (req, res) => {
     }
     //hash the password
     const salt = await bcrypt.genSalt(9)
-    const hashedPassword = await bcrypt.hash(newUser.password, salt)
+    const hashedPassword = await bcrypt.hash(req.body.password, salt)
 
     //create the user
     const queryString = `INSERT INTO users (first_name, last_name, email, password, profile_pic)
