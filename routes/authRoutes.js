@@ -1,11 +1,13 @@
+// Import necessary modules
 import { Router } from 'express'
 import db from '../db.js'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
+
 const router = Router()
 const jwtSecret = process.env.JWT_SECRET
 
-//Signup POST or create a new user
+// Signup POST or create a new user
 router.post('/signup', async (req, res) => {
   // Extract user data from request body
   const newUser = {
@@ -15,39 +17,30 @@ router.post('/signup', async (req, res) => {
     password: req.body.password,
     profile_pic: req.body.profile_pic
   }
+
   try {
-    if (!newUser.email) {
-      throw new Error('Email is required')
-    }
-    if (!newUser.password) {
-      throw new Error('Password is required')
-    }
-    if (!newUser.first_name) {
-      throw new Error('First name is required')
-    }
-    if (!newUser.last_name) {
-      throw new Error('Last name is required')
-    }
-    if (!newUser.profile_pic) {
-      throw new Error('picture is required')
-    }
-    //Other validation
-    if (newUser.password.length < 6) {
+    // Validation checks
+    if (!newUser.email) throw new Error('Email is required')
+    if (!newUser.password) throw new Error('Password is required')
+    if (!newUser.first_name) throw new Error('First name is required')
+    if (!newUser.last_name) throw new Error('Last name is required')
+    if (!newUser.profile_pic) throw new Error('Picture is required')
+    if (newUser.password.length < 6)
       throw new Error('Password must be at least 6 characters')
-    }
-    //Check for duplicate email
+
+    // Check for duplicate email
     const userExists = await db.query(
-      `SELECT * FROM users WHERE email = ${newUser.email}`
+      `SELECT * FROM users WHERE email = $1`, // Use parameterized query to prevent SQL injection
+      [newUser.email] // Pass email as a parameter
     )
 
-    if (userExists.rows.length) {
-      throw new Error('User already exists')
-    }
-    //hash the password
+    if (userExists.rows.length) throw new Error('User already exists')
+
+    // Hash the password
     const salt = await bcrypt.genSalt(9)
     const hashedPassword = await bcrypt.hash(newUser.password, salt)
 
-    //create the user
+    // Create the user
     const queryString = `INSERT INTO users (first_name, last_name, email, password, profile_pic)
 VALUES ($1, $2, $3, $4, $5)
 RETURNING user_id, email`
@@ -62,12 +55,14 @@ RETURNING user_id, email`
 
     let user = (await db.query(queryString, values)).rows[0]
 
-    //creating the token
+    // Creating the token
     const token = jwt.sign({ user_id: user.user_id }, jwtSecret)
     res.cookie('jwt', token)
-    //compose response
+
+    // Compose response
     delete user.password
-    //Respond
+
+    // Respond
     res.json(user)
   } catch (err) {
     res.json({ error: err })
