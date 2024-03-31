@@ -5,6 +5,7 @@ import jwt from 'jsonwebtoken'
 import bcrypt from 'bcrypt'
 
 const router = Router()
+
 const jwtSecret = process.env.JWT_SECRET
 
 // Signup POST or create a new user
@@ -30,30 +31,38 @@ router.post('/signup', async (req, res) => {
 
     // Check for duplicate email
     const userExists = await db.query(
-      `SELECT * FROM users WHERE email = $1`, // Use parameterized query to prevent SQL injection
+      `SELECT * FROM users WHERE email = '$1'`, // Use parameterized query to prevent SQL injection
       [newUser.email] // Pass email as a parameter
     )
 
     if (userExists.rows.length) throw new Error('User already exists')
 
     // Hash the password
-    const salt = await bcrypt.genSalt(9)
+    const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(newUser.password, salt)
 
-    // Create the user
-    const queryString = `INSERT INTO users (first_name, last_name, email, password, profile_pic)
-VALUES ($1, $2, $3, $4, $5)
-RETURNING user_id, email`
+    //     // Create the user
+    //     const queryString = `INSERT INTO users (first_name, last_name, email, password, profile_pic)
+    // VALUES ($1, $2, $3, $4, $5)
+    // RETURNING user_id, email`
 
-    const values = [
-      newUser.first_name,
-      newUser.last_name,
-      newUser.email,
-      hashedPassword,
-      newUser.profile_pic
-    ]
+    //     const values = [
+    //       newUser.first_name,
+    //       newUser.last_name,
+    //       newUser.email,
+    //       hashedPassword,
+    //       newUser.profile_pic
+    //     ]
 
-    let user = (await db.query(queryString, values)).rows[0]
+    // let user = (await db.query(queryString, values)).rows[0]
+
+    // Save user
+    const { rows } = await db.query(`
+      INSERT INTO users (first_name, last_name, email, password, profile_pic)
+      VALUES ('${req.body.first_name}', '${req.body.last_name}', '${req.body.email}', '${hashedPassword}', '${req.body.profile_pic}')
+      RETURNING *
+    `)
+    let user = rows[0]
 
     // Creating the token
     const token = jwt.sign({ user_id: user.user_id }, jwtSecret)
