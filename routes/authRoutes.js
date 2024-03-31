@@ -11,35 +11,28 @@ const jwtSecret = process.env.JWT_SECRET
 // Signup POST or create a new user
 router.post('/signup', async (req, res) => {
   // Extract user data from request body
-  const newUser = {
-    first_name: req.body.first_name,
-    last_name: req.body.last_name,
-    email: req.body.email,
-    password: req.body.password,
-    profile_pic: req.body.profile_pic
-  }
 
   try {
     // Validation checks
-    if (!newUser.email) throw new Error('Email is required')
-    if (!newUser.password) throw new Error('Password is required')
-    if (!newUser.first_name) throw new Error('First name is required')
-    if (!newUser.last_name) throw new Error('Last name is required')
-    if (!newUser.profile_pic) throw new Error('Picture is required')
-    if (newUser.password.length < 6)
+    if (!req.body.email) throw new Error('Email is required')
+    if (!req.body.password) throw new Error('Password is required')
+    if (!req.body.first_name) throw new Error('First name is required')
+    if (!req.body.last_name) throw new Error('Last name is required')
+    if (!req.body.profile_pic) throw new Error('Picture is required')
+    if (req.body.password.length < 6)
       throw new Error('Password must be at least 6 characters')
 
     // Check for duplicate email
     const userExists = await db.query(
       `SELECT * FROM users WHERE email = '$1'`, // Use parameterized query to prevent SQL injection
-      [newUser.email] // Pass email as a parameter
+      [req.body.email] // Pass email as a parameter
     )
 
     if (userExists.rows.length) throw new Error('User already exists')
 
     // Hash the password
     const salt = await bcrypt.genSalt(10)
-    const hashedPassword = await bcrypt.hash(newUser.password, salt)
+    const hashedPassword = await bcrypt.hash(req.body.password, salt)
 
     //     // Create the user
     //     const queryString = `INSERT INTO users (first_name, last_name, email, password, profile_pic)
@@ -47,11 +40,11 @@ router.post('/signup', async (req, res) => {
     // RETURNING user_id, email`
 
     //     const values = [
-    //       newUser.first_name,
-    //       newUser.last_name,
-    //       newUser.email,
+    //       req.body.first_name,
+    //       req.body.last_name,
+    //       req.body.email,
     //       hashedPassword,
-    //       newUser.profile_pic
+    //       req.body.profile_pic
     //     ]
 
     // let user = (await db.query(queryString, values)).rows[0]
