@@ -1,50 +1,69 @@
 import { Router } from 'express'
 import db from '../db.js'
-// import { jwtSecret } from '../secrets.js'
 import jwt from 'jsonwebtoken'
 
 const router = Router()
+const jwtSecret = process.env.JWTSECRET
 
 router.post('/houses', async (req, res) => {
   try {
-    const { location, price_per_night, bedroom, bathroom, description } =
-      req.body
-
-    //declare the token from the jwt property in the cookie
-    let token = req.cookies.jwt
-
-    // if token doesn't exist throw error
-    if (!token) {
+    // Validate Token
+    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
       throw new Error('Invalid authentication token')
     }
-
-    //else if token does exist verify user_id from the token
-    const { user_id } = jwt.verify(token, process.env.PRIVATE_KEY)
-
-    const queryString = `INSERT INTO houses (location, price_per_night, bedroom, bathroom, description, user_id)
-    VALUES (
-      '${location}',
-      ${price_per_night},
-      ${bedroom},
-      ${bathroom},
-      '${description}',
-      ${user_id}) 
-      RETURNING *`
-
-    // console.log(queryString)
-
-    console.log(token)
-
-    const { rows } = await db.query(queryString)
-    console.log(rows)
-
-    res.json(rows)
+    // Validate fields
+    let { location, rooms, bathrooms, price, description, photos } = req.body
+    if (
+      !location ||
+      !rooms ||
+      !bathrooms ||
+      !price ||
+      !description ||
+      !photos
+    ) {
+      throw new Error(
+        'location, rooms, bathrooms, price, descriptions, and photos are required'
+      )
+    }
+    // Validate photos
+    if (!Array.isArray(photos)) {
+      throw new Error('photos must be an array')
+    }
+    if (!photos.length) {
+      throw new Error('photos array cannot be empty')
+    }
+    if (!photos.every((p) => typeof p === 'string' && p.length)) {
+      throw new Error('all photos must be strings and must not be empty')
+    }
+    // Create house
+    let houseCreated = await db.query(`
+      INSERT INTO houses (location, rooms, bathrooms, price, description, user_id)
+      VALUES ('${location}', '${rooms}', '${bathrooms}', '${price}', '${description}', '${decodedToken.user_id}') 
+      RETURNING *
+    `)
+    let house = houseCreated.rows[0]
+    // Create photos
+    let photosQuery = 'INSERT INTO houses_photos (house_id, photo) VALUES '
+    photos.forEach((p, i) => {
+      if (i === photos.length - 1) {
+        photosQuery += `(${house.house_id}, '${p}') `
+      } else {
+        photosQuery += `(${house.house_id}, '${p}'), `
+      }
+    })
+    photosQuery += 'RETURNING *'
+    let photosCreated = await db.query(photosQuery)
+    // Compose response
+    house.photo = photosCreated.rows[0].photo
+    house.reviews = 0
+    house.rating = 0
+    // Respond
+    res.json(house)
   } catch (err) {
     res.json({ error: err.message })
   }
 })
-
-// route gets all the houses and if there is a query it gives the results of the query
 
 router.get('/houses', async (req, res) => {
   try {
@@ -93,74 +112,136 @@ router.get('/houses', async (req, res) => {
     res.json({ error: err.message })
   }
 })
-// this route gets a specific house ID based on the route parameter
 
-router.get('/houses/:houseId', async (req, res) => {
-  let houseId = req.params.houseId
+router.get('/houses/:house_id', async (req, res) => {
   try {
-    const { rows } = await db.query(
-      `SELECT * FROM houses WHERE house_id = ${houseId}`
+    let { rows } = await db.query(
+      `SELECT * FROM houses WHERE house_id = ${req.params.house_id}`
     )
-    //if the array is empty throws a specific error
     if (!rows.length) {
-      throw new Error(`The house Id number ${houseId} does not exist.`)
+      throw new Error(`No house found with id ${req.params.user_id}`)
     }
-    console.log(rows)
-    res.json(rows)
+    let house = rows[0]
+    // join user
+    let { rows: hostRows } = await db.query(
+      `SELECT user_id, picture, first_name, last_name FROM users WHERE user_id = ${house.user_id}`
+    )
+    house.host = {
+      user_id: hostRows[0].user_id,
+      picture: hostRows[0].picture,
+      firstName: hostRows[0].first_name,
+      lastName: hostRows[0].last_name
+    }
+    // join photos
+    let { rows: photosRows } = await db.query(
+      `SELECT * FROM houses_photos WHERE house_id = ${house.house_id}`
+    )
+    house.images = photosRows.map((p) => p.photo)
+    delete house.user_id
+    res.json(house)
   } catch (err) {
-    console.log(err.message)
     res.json({ error: err.message })
   }
 })
 
-// patch houses route
-
-router.patch('/houses/:houseId', async (req, res) => {
-  let houseId = req.params.houseId
-  const { location, price_per_night, bedroom, bathroom, description, user_id } =
-    req.body
-  let patchQueryString = ` UPDATE houses`
+router.patch('/houses/:house_id', async (req, res) => {
   try {
-    if (
-      location ||
-      price_per_night ||
-      bedroom ||
-      bathroom ||
-      description ||
-      user_id
-    ) {
-      patchQueryString += ` SET`
-      if (location) {
-        patchQueryString += ` location = '${location}',`
-      }
-      if (price_per_night) {
-        patchQueryString += ` price_per_night = ${price_per_night},`
-      }
-      if (bedroom) {
-        patchQueryString += ` bedroom = ${bedroom},`
-      }
-      if (bathroom) {
-        patchQueryString += ` bathroom = ${bathroom},`
-      }
-      if (description) {
-        patchQueryString += ` description = '${description}',`
-      }
-      if (user_id) {
-        patchQueryString += ` user_id = ${user_id},`
-      }
-
-      patchQueryString = patchQueryString.slice(0, -1)
-      patchQueryString += ` WHERE house_id = ${houseId} RETURNING *`
+    // Validate Token
+    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
+      throw new Error('Invalid authentication token')
     }
-
-    const resQuery = await db.query(patchQueryString)
-    const { rowCount, rows } = resQuery
-    if (rowCount === 0) {
-      throw new Error(`There is no house corresponding to this query.`)
+    // Find house
+    const { rows: housesRows } = await db.query(`
+      SELECT * FROM houses WHERE house_id = ${req.params.house_id}
+    `)
+    if (!housesRows.length) {
+      throw new Error(`house with id ${req.params.house_id} not found`)
     }
-    res.json(rows[0])
+    // Validate house owner
+    if (housesRows[0].user_id !== decodedToken.user_id) {
+      throw new Error('You are not authorized to edit this house')
+    }
+    // Start building the SQL query
+    let sqlquery = `UPDATE houses `
+    // Add SET if the req.body object is not empty
+    if (req.body) {
+      sqlquery += `SET `
+    }
+    // Iterate over the keys of the req.body object and add each key-value pair to the SQL query
+    for (let key in req.body) {
+      if (
+        key === 'location' ||
+        key === 'rooms' ||
+        key === 'bathrooms' ||
+        key === 'price' ||
+        key === 'description'
+      ) {
+        sqlquery += `${key} = '${req.body[key]}', `
+      }
+    }
+    // Remove the trailing comma and space from the SQL query
+    sqlquery = sqlquery.slice(0, -2)
+    // Add the WHERE clause to the SQL query
+    sqlquery += ` WHERE house_id = ${req.params.house_id} RETURNING *`
+    // Execute the SQL query
+    let { rows } = await db.query(sqlquery)
+    let house = rows[0]
+    // Update photos
+    if (req.body.photos && req.body.photos.length) {
+      let { rows: photosRows } = await db.query(
+        `SELECT * FROM houses_photos WHERE house_id = ${req.params.house_id}`
+      )
+      photosRows = photosRows.map((p, i) => {
+        if (req.body.photos[i]) {
+          p.photo = req.body.photos[i]
+        }
+        return p
+      })
+      let photosQuery = 'UPDATE houses_photos SET photo = (case '
+      photosRows.forEach((p, i) => {
+        photosQuery += `when id = ${p.id} then '${p.photo}' `
+      })
+      photosQuery += 'end) WHERE id in ('
+      photosRows.forEach((p, i) => {
+        photosQuery += `${p.id}, `
+      })
+      photosQuery = photosQuery.slice(0, -2)
+      photosQuery += ') RETURNING *'
+      const { rows: updatedPhotos } = await db.query(photosQuery)
+      house.images = updatedPhotos.map((p) => p.photo)
+    }
+    // Send the response
+    res.json(house)
   } catch (err) {
-    console.log(err.message)
+    res.json({ error: err.message })
+  }
+})
+
+router.get('/locations', async (req, res) => {
+  try {
+    let query = `SELECT DISTINCT(location) FROM houses`
+    let { rows } = await db.query(query)
+    rows = rows.map((r) => r.location)
+    res.json(rows)
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
+router.get('/listings', async (req, res) => {
+  try {
+    // Validate Token
+    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
+      throw new Error('Invalid authentication token')
+    }
+    // Get houses
+    let query = `SELECT * FROM houses WHERE user_id = ${decodedToken.user_id}`
+    let { rows } = await db.query(query)
+    // Respond
+    res.json(rows)
+  } catch (err) {
     res.json({ error: err.message })
   }
 })
