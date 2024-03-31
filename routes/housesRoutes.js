@@ -47,40 +47,52 @@ router.post('/houses', async (req, res) => {
 // route gets all the houses and if there is a query it gives the results of the query
 
 router.get('/houses', async (req, res) => {
-  let queryString = 'SELECT * FROM houses WHERE TRUE'
-  console.log(queryString)
-  const { location, max_price, min_rooms, sort, search, order } = req.query
   try {
-    if (location) {
-      queryString += ` AND location = '${location}'`
+    // build query base
+    let sqlquery =
+      'SELECT * FROM (SELECT DISTINCT ON (houses.house_id) houses.*, houses_photos.photo FROM houses'
+    let filters = []
+    // add photos
+    sqlquery += ` LEFT JOIN houses_photos ON houses.house_id = houses_photos.house_id `
+    // add WHERE
+    if (
+      req.query.location ||
+      req.query.max_price ||
+      req.query.min_rooms ||
+      req.query.search
+    ) {
+      sqlquery += ' WHERE '
     }
-    if (max_price) {
-      queryString += ` AND price_per_night <= ${max_price}`
+    // add filters
+    if (req.query.location) {
+      filters.push(`location = '${req.query.location}'`)
     }
-    if (min_rooms) {
-      queryString += ` AND bedrooms <= ${min_rooms}`
+    if (req.query.max_price) {
+      filters.push(`price <= '${req.query.max_price}'`)
     }
-    if (search) {
-      queryString += ` AND description LIKE '%${search}%'`
+    if (req.query.min_rooms) {
+      filters.push(`rooms >= '${req.query.min_rooms}'`)
     }
-    if (sort === 'price') {
-      queryString += ` ORDER BY price_per_night ${order}'`
+    if (req.query.search) {
+      filters.push(`description LIKE '%${req.query.search}%'`)
     }
-    if (sort === 'bedrooms') {
-      queryString += ` ORDER BY bedrooms ${order}`
+    // array to string divided by AND
+    sqlquery += filters.join(' AND ')
+    sqlquery += ') AS distinct_houses'
+    // add ORDER BY
+    if (req.query.sort === 'rooms') {
+      sqlquery += ` ORDER BY rooms DESC`
+    } else {
+      sqlquery += ` ORDER BY price ASC`
     }
-    console.log(queryString)
-    const { rows } = await db.query(queryString)
-    if (!rows.length) {
-      throw new Error(`There is no house corresponding to this query.`)
-    }
+    // Run query
+    let { rows } = await db.query(sqlquery)
+    // Respond
     res.json(rows)
   } catch (err) {
-    console.log(err.message)
     res.json({ error: err.message })
   }
 })
-
 // this route gets a specific house ID based on the route parameter
 
 router.get('/houses/:houseId', async (req, res) => {
