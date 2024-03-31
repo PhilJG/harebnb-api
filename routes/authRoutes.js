@@ -65,7 +65,7 @@ RETURNING user_id, email`
     // Respond
     res.json(user)
   } catch (err) {
-    res.json({ error: err })
+    res.json({ error: err.message })
   }
 })
 
