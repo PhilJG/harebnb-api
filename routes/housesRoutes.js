@@ -3,38 +3,42 @@ import db from '../db.js'
 import jwt from 'jsonwebtoken'
 
 const router = Router()
-const jwtSecret = process.env.JWTSECRET
+const jwtSecret = process.env.JWT_SECRET
 
+// Create house
 router.post('/houses', async (req, res) => {
   try {
     // Validate Token
     const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    console.log(decodedToken.user_id)
+
     if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
       throw new Error('Invalid authentication token')
     }
     // Validate fields
-    let { location, rooms, bathrooms, price, description, photos } = req.body
+    let { location, rooms, bathrooms, price, description, house_photos } =
+      req.body
     if (
       !location ||
       !rooms ||
       !bathrooms ||
       !price ||
       !description ||
-      !photos
+      !house_photos
     ) {
       throw new Error(
         'location, rooms, bathrooms, price, descriptions, and photos are required'
       )
     }
     // Validate photos
-    if (!Array.isArray(photos)) {
+    if (!Array.isArray(house_photos)) {
       throw new Error('photos must be an array')
     }
-    if (!photos.length) {
-      throw new Error('photos array cannot be empty')
+    if (!house_photos.length) {
+      throw new Error('house_photos array cannot be empty')
     }
-    if (!photos.every((p) => typeof p === 'string' && p.length)) {
-      throw new Error('all photos must be strings and must not be empty')
+    if (!house_photos.every((p) => typeof p === 'string' && p.length)) {
+      throw new Error('all house_photos must be strings and must not be empty')
     }
     // Create house
     let houseCreated = await db.query(`
@@ -43,10 +47,11 @@ router.post('/houses', async (req, res) => {
       RETURNING *
     `)
     let house = houseCreated.rows[0]
+
     // Create photos
-    let photosQuery = 'INSERT INTO houses_photos (house_id, photo) VALUES '
-    photos.forEach((p, i) => {
-      if (i === photos.length - 1) {
+    let photosQuery = 'INSERT INTO house_photos (house_id, url) VALUES '
+    house_photos.forEach((p, i) => {
+      if (i === house_photos.length - 1) {
         photosQuery += `(${house.house_id}, '${p}') `
       } else {
         photosQuery += `(${house.house_id}, '${p}'), `
@@ -55,10 +60,12 @@ router.post('/houses', async (req, res) => {
     photosQuery += 'RETURNING *'
     let photosCreated = await db.query(photosQuery)
     // Compose response
-    house.photo = photosCreated.rows[0].photo
+    house.house_photos = photosCreated.rows[0].house_photos
     house.reviews = 0
     house.rating = 0
     // Respond
+    console.log('res.body', res.body)
+
     res.json(house)
   } catch (err) {
     res.json({ error: err.message })
@@ -69,10 +76,10 @@ router.get('/houses', async (req, res) => {
   try {
     // build query base
     let sqlquery =
-      'SELECT * FROM (SELECT DISTINCT ON (houses.house_id) houses.*, houses_photos.photo FROM houses'
+      'SELECT * FROM (SELECT DISTINCT ON (houses.house_id) houses.*, house_photos.photo FROM houses'
     let filters = []
     // add photos
-    sqlquery += ` LEFT JOIN houses_photos ON houses.house_id = houses_photos.house_id `
+    sqlquery += ` LEFT JOIN house_photos ON houses.house_id = house_photos.house_id `
     // add WHERE
     if (
       req.query.location ||
@@ -134,7 +141,7 @@ router.get('/houses/:house_id', async (req, res) => {
     }
     // join photos
     let { rows: photosRows } = await db.query(
-      `SELECT * FROM houses_photos WHERE house_id = ${house.house_id}`
+      `SELECT * FROM house_photos WHERE house_id = ${house.house_id}`
     )
     house.images = photosRows.map((p) => p.photo)
     delete house.user_id
@@ -190,7 +197,7 @@ router.patch('/houses/:house_id', async (req, res) => {
     // Update photos
     if (req.body.photos && req.body.photos.length) {
       let { rows: photosRows } = await db.query(
-        `SELECT * FROM houses_photos WHERE house_id = ${req.params.house_id}`
+        `SELECT * FROM house_photos WHERE house_id = ${req.params.house_id}`
       )
       photosRows = photosRows.map((p, i) => {
         if (req.body.photos[i]) {
@@ -198,7 +205,7 @@ router.patch('/houses/:house_id', async (req, res) => {
         }
         return p
       })
-      let photosQuery = 'UPDATE houses_photos SET photo = (case '
+      let photosQuery = 'UPDATE house_photos SET photo = (case '
       photosRows.forEach((p, i) => {
         photosQuery += `when id = ${p.id} then '${p.photo}' `
       })
