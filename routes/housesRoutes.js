@@ -76,7 +76,7 @@ router.get('/houses', async (req, res) => {
   try {
     // build query base
     let sqlquery =
-      'SELECT * FROM (SELECT DISTINCT ON (houses.house_id) houses.*, house_photos.photo FROM houses'
+      'SELECT * FROM (SELECT DISTINCT ON (houses.house_id) houses.*, house_photos.url FROM houses'
     let filters = []
     // add photos
     sqlquery += ` LEFT JOIN house_photos ON houses.house_id = house_photos.house_id `
@@ -143,7 +143,7 @@ router.get('/houses/:house_id', async (req, res) => {
     let { rows: photosRows } = await db.query(
       `SELECT * FROM house_photos WHERE house_id = ${house.house_id}`
     )
-    house.images = photosRows.map((p) => p.photo)
+    house.images = photosRows.map((p) => p.url)
     delete house.user_id
     res.json(house)
   } catch (err) {
