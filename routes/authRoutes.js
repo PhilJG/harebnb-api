@@ -54,9 +54,7 @@ router.post('/signup', async (req, res) => {
     delete user.password
 
     // Respond
-    res.json(user)
   } catch (err) {
-    console.log(err)
     res.json({ error: err.message })
   }
 })
