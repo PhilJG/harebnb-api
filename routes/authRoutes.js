@@ -97,6 +97,8 @@ router.post('/login', async (req, res) => {
       sameSite: 'none'
     })
     // Respond
+    console.log(res)
+
     res.json({ message: 'You are logged in' })
   } catch (err) {
     console.log(err)
