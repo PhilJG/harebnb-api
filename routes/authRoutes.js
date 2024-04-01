@@ -4,7 +4,7 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 const router = Router()
 
-const jwtSecret = process.env.JWTSECRET
+const jwtSecret = process.env.JWT_SECRET
 
 router.post('/signup', async (req, res) => {
   try {
