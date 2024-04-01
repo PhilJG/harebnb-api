@@ -56,6 +56,7 @@ router.post('/signup', async (req, res) => {
     // Respond
     res.json(user)
   } catch (err) {
+    console.log(err)
     res.json({ error: err.message })
   }
 })
@@ -98,6 +99,8 @@ router.post('/login', async (req, res) => {
     // Respond
     res.json({ message: 'You are logged in' })
   } catch (err) {
+    console.log(err)
+
     res.json({ error: err.message })
   }
 })
