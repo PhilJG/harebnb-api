@@ -30,6 +30,6 @@ app.use(housesRoutes)
 app.use(usersRouter)
 app.use(authRoute)
 
-app.listen(process.env.PORT || 4000, () => {
-  console.log(`Airbnb server is running on ${process.env.PORT || 4000}`)
+app.listen(process.env.PORT || 4100, () => {
+  console.log(`Airbnb server is running on ${process.env.PORT || 4100}`)
 })
