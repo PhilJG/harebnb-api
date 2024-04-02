@@ -72,6 +72,7 @@ router.post('/houses', async (req, res) => {
   }
 })
 
+// List all houses
 router.get('/houses', async (req, res) => {
   try {
     // build query base
@@ -120,20 +121,24 @@ router.get('/houses', async (req, res) => {
   }
 })
 
+// Get individual house based on id
 router.get('/houses/:house_id', async (req, res) => {
   try {
     let { rows } = await db.query(
       `SELECT * FROM houses WHERE house_id = ${req.params.house_id}`
     )
+    console.log(rows[0])
     if (!rows.length) {
       throw new Error(`No house found with id ${req.params.user_id}`)
     }
     let house = rows[0]
+
     // join user
     let { rows: hostRows } = await db.query(
-      `SELECT user_id, picture, first_name, last_name FROM users WHERE user_id = ${house.user_id}`
+      `SELECT user_id, profile_pic, first_name, last_name FROM users WHERE user_id = ${house.user_id}`
     )
-    house.host = {
+
+    house.hostRows = {
       user_id: hostRows[0].user_id,
       picture: hostRows[0].picture,
       firstName: hostRows[0].first_name,
