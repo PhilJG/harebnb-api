@@ -1,19 +1,24 @@
 import { Router } from 'express'
 import db from '../db.js' // import database connection
+import jwt from 'jsonwebtoken'
 
 const router = Router()
+const jwtSecret = process.env.JWT_SECRET
 
 //routes to POST info on DATA BASE
 router.post('/bookings', async (req, res) => {
-  const { user_id, house_id, check_in, check_out, total_price, booked_on } =
-    req.body
-  console.log(req.body)
-
-  const newBookingQuery = `INSERT INTO bookings (user_id, house_id, check_in, check_out, total_price, booked_on)
-      VALUES (${user_id}, ${house_id}, '${check_in}', '${check_out}', ${total_price}, '${booked_on}')
-      RETURNING * `
-  console.log(newBookingQuery)
   try {
+    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+
+    const { house_id, check_in, check_out, total_price, booked_on } = req.body
+
+    const user_id = decodedToken.user_id
+
+    const newBookingQuery = `INSERT INTO bookings (user_id, house_id, check_in, check_out, total_price, booked_on)
+      VALUES (${decodedToken.user_id}, ${house_id}, '${check_in}', '${check_out}', ${total_price}, '${booked_on}')
+      RETURNING * `
+    console.log(newBookingQuery)
+
     const { rows } = await db.query(newBookingQuery)
     res.json(rows)
   } catch (err) {
