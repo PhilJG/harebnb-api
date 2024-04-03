@@ -1,17 +1,22 @@
 import { Router } from 'express'
 import db from '../db.js'
+import jwt from 'jsonwebtoken'
 
 const router = Router()
+const jwtSecret = process.env.JWT_SECRET
 
 // send post request
 
 router.post('/reviews', async (req, res) => {
-  const { review_date, review, rating, user_id, house_id } = req.body
+  const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+  const user_id = decodedToken.user_id
+
+  const { review_date, review, rating, house_id } = req.body
+
   const postQueryString = `INSERT INTO reviews (review_date, review, rating, user_id, house_id)
   VALUES ('${review_date}', '${review}', ${rating}, ${user_id}, ${house_id} )
   RETURNING * `
   try {
-    console.log(postQueryString)
     const { rows } = await db.query(postQueryString)
     res.json(rows)
   } catch (err) {
