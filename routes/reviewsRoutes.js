@@ -6,11 +6,10 @@ const router = Router()
 // send post request
 
 router.post('/reviews', async (req, res) => {
-  const { date, review, rating, user_id, house_id } = req.body
-  const postQueryString = `INSERT INTO reviews (date, review, rating, user_id, house_id)
-  VALUES ('${date}', '${review}', ${rating}, ${user_id}, ${house_id} )
+  const { review_date, review, rating, user_id, house_id } = req.body
+  const postQueryString = `INSERT INTO reviews (review_date, review, rating, user_id, house_id)
+  VALUES ('${review_date}', '${review}', ${rating}, ${user_id}, ${house_id} )
   RETURNING * `
-
   try {
     console.log(postQueryString)
     const { rows } = await db.query(postQueryString)
