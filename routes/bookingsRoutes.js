@@ -9,19 +9,53 @@ const jwtSecret = process.env.JWT_SECRET
 router.post('/bookings', async (req, res) => {
   try {
     const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
-
-    const { house_id, check_in, check_out, total_price, booked_on } = req.body
-
     const user_id = decodedToken.user_id
 
-    const newBookingQuery = `INSERT INTO bookings (user_id, house_id, check_in, check_out, total_price, booked_on)
-      VALUES (${decodedToken.user_id}, ${house_id}, '${check_in}', '${check_out}', ${total_price}, '${booked_on}')
-      RETURNING * `
+    if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
+      throw new Error('Invalid authentication token')
+    }
+    // Validate fields
+    let { house_id, check_in, check_out, message } = req.body
 
-    const { rows } = await db.query(newBookingQuery)
+    if (!house_id || !check_in || !check_out) {
+      throw new Error('house_id, check_in, check_out, are required')
+    }
+
+    // Find house to get price
+    let houseFound = await db.query(
+      `SELECT house_id, price FROM houses WHERE house_id = ${house_id}`
+    )
+    if (!houseFound.rows.length) {
+      throw new Error(`House with id ${house_id} not found`)
+    }
+    const house = houseFound.rows[0]
+
+    // Calculate total price
+    let checkInDate = new Date(req.body.check_in)
+    let checkOutDate = new Date(req.body.check_out)
+    if (checkOutDate <= checkInDate) {
+      throw new Error('check_out date must be after check_in date')
+    }
+
+    // Set booked_on date
+    const booked_on = new Date().toISOString().slice(0, 10)
+    console.log(booked_on)
+
+    // Calculate total nights
+    const totalNights = Math.round(
+      (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
+    )
+
+    // Calculate total price
+    const totalPrice = totalNights * house.price
+
+    const { rows } =
+      await db.query(`INSERT INTO bookings (user_id, house_id, check_in, check_out, total_days, total_price, booked_on, message)
+      VALUES (${user_id}, ${house_id}, '${check_in}', '${check_out}',${totalNights}, ${totalPrice}, '${booked_on}', '${message}')
+      RETURNING * `)
+
     res.json(rows)
   } catch (err) {
-    console.error(err.message)
     res.json({ error: err.message })
   }
 })
