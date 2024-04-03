@@ -12,6 +12,14 @@ app.use(
   })
 )
 
+// app.use(
+//   cors({
+//     origin: 'http://localhost:4100', // replace with the origin of your client app
+//     methods: ['GET', 'POST', 'PUT', 'DELETE'],
+//     allowedHeaders: ['Content-Type', 'Authorization']
+//   })
+// )
+
 //middleware
 app.use(express.json())
 app.use(cookieParser())
