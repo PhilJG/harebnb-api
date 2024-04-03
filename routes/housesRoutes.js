@@ -10,7 +10,6 @@ router.post('/houses', async (req, res) => {
   try {
     // Validate Token
     const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
-    console.log(decodedToken.user_id)
 
     if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
       throw new Error('Invalid authentication token')
@@ -64,8 +63,6 @@ router.post('/houses', async (req, res) => {
     house.reviews = 0
     house.rating = 0
     // Respond
-    console.log('res.body', res.body)
-
     res.json(house)
   } catch (err) {
     res.json({ error: err.message })
@@ -127,7 +124,7 @@ router.get('/houses/:house_id', async (req, res) => {
     let { rows } = await db.query(
       `SELECT * FROM houses WHERE house_id = ${req.params.house_id}`
     )
-    console.log(rows[0])
+
     if (!rows.length) {
       throw new Error(`No house found with id ${req.params.user_id}`)
     }

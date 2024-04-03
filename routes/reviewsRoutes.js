@@ -30,7 +30,7 @@ router.post('/reviews', async (req, res) => {
 router.get('/reviews', async (req, res) => {
   try {
     const { rows } = await db.query(`SELECT * FROM reviews`)
-    console.log(rows)
+
     res.json(rows)
   } catch (err) {
     console.error(err.message)
@@ -40,14 +40,12 @@ router.get('/reviews', async (req, res) => {
 
 router.get(`/reviews/:reviewId`, async (req, res) => {
   let reviewId = req.params.reviewId
-  console.log(reviewId)
 
   try {
     const { rows } = await db.query(
       `SELECT * FROM reviews WHERE review_id = ${reviewId}`
     )
     res.json(rows)
-    console.log(rows)
   } catch (err) {
     console.error(err.message)
     res.json({ error: err.message })
@@ -56,7 +54,7 @@ router.get(`/reviews/:reviewId`, async (req, res) => {
 
 router.delete('/reviews/:review_id', async (req, res) => {
   let deleteQueryString = `DELETE FROM reviews WHERE review_id = ${req.params.review_id}`
-  console.log(deleteQueryString)
+
   const { rows } = await db.query(deleteQueryString)
   try {
     res.json(rows[0])
