@@ -17,7 +17,6 @@ router.post('/bookings', async (req, res) => {
     const newBookingQuery = `INSERT INTO bookings (user_id, house_id, check_in, check_out, total_price, booked_on)
       VALUES (${decodedToken.user_id}, ${house_id}, '${check_in}', '${check_out}', ${total_price}, '${booked_on}')
       RETURNING * `
-    console.log(newBookingQuery)
 
     const { rows } = await db.query(newBookingQuery)
     res.json(rows)

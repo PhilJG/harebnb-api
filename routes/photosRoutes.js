@@ -33,15 +33,12 @@ router.get('/photos', async (req, res) => {
   try {
     const { rows } = await db.query(queryString)
 
-    console.log(`rows.length ${rows.length}`)
-
     if (!rows.length) {
       throw new Error('house parameter is required')
     }
 
     res.json(rows)
   } catch (err) {
-    console.error(err.message)
     res.json(err)
   }
 })
@@ -55,10 +52,9 @@ router.get('/photos/:photoId', async (req, res) => {
     if (!rows.length) {
       throw new Error(`The photo Id number ${photoId} does not exist.`)
     }
-    console.log(rows)
+
     res.json(rows)
   } catch (err) {
-    console.error(err.message)
     res.json({ error: err.message })
   }
 })
@@ -77,11 +73,8 @@ router.patch('/photos/:photoId', async (req, res) => {
     if (!rows.length) {
       throw new Error('The house ID provided is not valid')
     }
-
-    console.log(rows)
     res.json(rows)
   } catch (err) {
-    console.error(err.message)
     res.json({ error: err.message })
   }
 })
