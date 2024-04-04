@@ -14,7 +14,7 @@ app.use(
 
 // app.use(
 //   cors({
-//     origin: 'http://localhost:4100', // replace with the origin of your client app
+//     origin: 'http://localhost:4000', // replace with the origin of your client app
 //     methods: ['GET', 'POST', 'PUT', 'DELETE'],
 //     allowedHeaders: ['Content-Type', 'Authorization']
 //   })
