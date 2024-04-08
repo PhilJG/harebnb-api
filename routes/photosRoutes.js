@@ -4,11 +4,11 @@ import db from '../db.js'
 const router = Router()
 
 router.post('/photos', async (req, res) => {
-  const { photo_url, house_id } = req.body
+  const { url, house_id } = req.body
   console.log(req.body)
 
-  const newPhotoQuery = `INSERT INTO houses_pictures (photo_url, house_id)
-      VALUES ('${photo_url}', ${house_id})
+  const newPhotoQuery = `INSERT INTO houses_pictures (url, house_id)
+      VALUES ('${url}', ${house_id})
       RETURNING * `
   console.log(newPhotoQuery)
   try {
@@ -22,7 +22,7 @@ router.post('/photos', async (req, res) => {
 
 // GET PHOTOS ROUTES
 router.get('/photos', async (req, res) => {
-  let houseId = req.query.house
+  let houseId = req.query.house_id
 
   let queryString = `SELECT * FROM houses_pictures WHERE house_id = ${houseId}`
 
@@ -62,13 +62,13 @@ router.get('/photos/:photoId', async (req, res) => {
 ////PATCH PHOTOS ID ROUTE
 router.patch('/photos/:photoId', async (req, res) => {
   let photoIdPatch = req.params.photoId
-  let photoUrl = req.body.photo_url
+  let photoUrl = req.body.url
 
   try {
     const { rows } = await db.query(`UPDATE houses_pictures
-      SET photo_url = '${photoUrl}'
+      SET url = '${photoUrl}'
       WHERE photo_id = ${photoIdPatch} 
-      RETURNING photo_url `)
+      RETURNING url `)
 
     if (!rows.length) {
       throw new Error('The house ID provided is not valid')

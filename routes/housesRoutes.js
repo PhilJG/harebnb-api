@@ -3,6 +3,8 @@ import db from '../db.js'
 import jwt from 'jsonwebtoken'
 
 const router = Router()
+
+
 const jwtSecret = process.env.JWT_SECRET
 
 // Create house
@@ -62,6 +64,8 @@ router.post('/houses', async (req, res) => {
     house.house_photos = photosCreated.rows[0].house_photos
     house.reviews = 0
     house.rating = 0
+    console.log(house_photos);
+    
     // Respond
     res.json(house)
   } catch (err) {
@@ -111,6 +115,8 @@ router.get('/houses', async (req, res) => {
     }
     // Run query
     let { rows } = await db.query(sqlquery)
+    console.log(sqlquery);
+    
     // Respond
     res.json(rows)
   } catch (err) {
@@ -228,9 +234,13 @@ router.patch('/houses/:house_id', async (req, res) => {
 })
 
 router.get('/locations', async (req, res) => {
+  
   try {
-    let query = `SELECT DISTINCT(location) FROM houses`
-    let { rows } = await db.query(query)
+    let location = req.body.location
+    let query = location ? 
+    `SELECT DISTINCT(location) FROM houses WHERE location = ${location}`
+     : `SELECT DISTINCT(location) FROM houses`;
+    let { rows } = await db.query(query, location ? [location] : undefined);
     rows = rows.map((r) => r.location)
     res.json(rows)
   } catch (err) {
