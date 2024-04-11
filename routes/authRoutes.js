@@ -59,13 +59,16 @@ router.post('/signup', async (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-  const { password, email, user_id, first_name, last_name } = req.body
-  console.log(req.body.first_name);
+  const { password, email, user_id, first_name, last_name } = req.body.data
+  console.log(req.body);
+
   
   let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
+  console.log(dbpassword)
   try {
     let { rows } = await db.query(dbpassword)
-
+    
+    console.log(rows)
     const isPswValid = await bcrypt.compare(password, rows[0].password)
 
     if(rows.length === 0){
@@ -89,7 +92,9 @@ router.post('/login', async (req, res) => {
       res.json(`${rows[0].last_name} you are logged in`)
     }
     } catch (err){
-      res.json({error: err.message})
+      console.log(err);
+      
+      res.json({error: err})
     }
   }
 )    
@@ -151,8 +156,12 @@ router.get('/logout', (req, res) => {
 router.get('/profile', async (req, res) => {
   
   try {
+    console.log(req.cookies);
+    
     // Validate Token
     const decodedToken = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET)
+console.log(decodedToken);
+
 
     if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
       throw new Error('Invalid authentication token')
