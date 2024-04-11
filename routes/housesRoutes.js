@@ -108,19 +108,28 @@ router.get('/houses', async (req, res) => {
     // array to string divided by AND
     sqlquery += filters.join(' AND ')
     sqlquery += ') AS distinct_houses'
+    
     // add ORDER BY
     if (req.query.sort === 'rooms') {
       sqlquery += ` ORDER BY rooms DESC`
     } else {
       sqlquery += ` ORDER BY price ASC`
     }
+
+    // Execute the query to get houses
+    let { rows: houses } = await db.query(sqlquery);
+
+    // Add this block to get house_photos for each house
+    for (let house of houses) {
+      let { rows: photosRows } = await db.query(
+        `SELECT * FROM house_photos WHERE house_id = ${house.house_id}`
+      )
+      // Extract URLs from photosRows and assign to house.house_photos
+      house.house_photos = photosRows.map(photoRow => photoRow.url);
+    }
     
-    // Run query
-    let { rows } = await db.query(sqlquery)
-    console.log(sqlquery);
-    
-    // Respond
-    res.json(rows)
+    // Return the houses with photos
+    res.json(houses);
   } catch (err) {
     res.json({ error: err.message })
   }
@@ -153,7 +162,7 @@ router.get('/houses/:house_id', async (req, res) => {
     let { rows: photosRows } = await db.query(
       `SELECT * FROM house_photos WHERE house_id = ${house.house_id}`
     )
-    house.images = photosRows.map((p) => p.url)
+    house.house_photos = photosRows.map((p) => p.url)
     delete house.user_id
     res.json(house)
   } catch (err) {
