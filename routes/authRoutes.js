@@ -4,7 +4,6 @@ import bcrypt from 'bcrypt'
 import jwt from 'jsonwebtoken'
 const router = Router()
 
-const jwtSecret = process.env.JWT_SECRET
 
 router.post('/signup', async (req, res) => {
   try {
@@ -47,7 +46,7 @@ router.post('/signup', async (req, res) => {
     `)
     let user = rows[0]
     // Create token
-    const token = jwt.sign({ user_id: user.user_id }, jwtSecret)
+    const token = jwt.sign({ user_id: user.user_id }, process.env.JWT_SECRET)
     res.cookie('jwt', token)
 
     // Compose response
@@ -60,47 +59,81 @@ router.post('/signup', async (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
+  const { password, email, user_id, first_name, last_name } = req.body
+  console.log(req.body.first_name);
+  
+  let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
   try {
-    // Required fields
-    if (!req.body.email) {
-      throw new Error('email is required')
-    }
-    if (!req.body.password) {
-      throw new Error('password is required')
-    }
-    // Find user
-    const { rows } = await db.query(`
-      SELECT * FROM users WHERE email = '${req.body.email}'
-    `)
-    if (!rows.length) {
-      throw new Error('Either your email or your password is incorrect')
-    }
-    const user = rows[0]
-    // Validate password
-    const isPasswordValid = await bcrypt.compare(
-      req.body.password,
-      user.password
-    )
-    if (!isPasswordValid) {
-      throw new Error('Either your email or your password is incorrect')
-    }
-    const token = jwt.sign(
-      { user_id: user.user_id, email: user.email },
-      jwtSecret
-    )
-    // Compose response
-    res.cookie('jwt', token, {
-      httpOnly: true,
-      secure: true,
-      sameSite: 'none'
-    })
-    // Respond
+    let { rows } = await db.query(dbpassword)
 
-    res.json({ message: 'You are logged in' })
-  } catch (err) {
-    res.json({ error: err.message })
+    const isPswValid = await bcrypt.compare(password, rows[0].password)
+
+    if(rows.length === 0){
+      throw new Error('User not found incorrect')
+    }
+
+    if(isPswValid){
+      let payload = {
+        email: rows[0].email,
+        user_id: rows[0].user_id
+      }
+      console.log(payload);
+      
+      
+      let token = jwt.sign(payload, process.env.JWT_SECRET)
+      console.log(token);
+      
+      
+      res.cookie('jwt', token)
+      
+      res.json(`${rows[0].last_name} you are logged in`)
+    }
+    } catch (err){
+      res.json({error: err.message})
+    }
   }
-})
+)    
+
+    //   // Required fields
+  //   if (!req.body.email) {
+  //     throw new Error('email is required')
+  //   }
+  //   if (!req.body.password) {
+  //     throw new Error('password is required')
+  //   }
+  //   // Find user
+  //   const { rows } = await db.query(`
+  //     SELECT * FROM users WHERE email = '${req.body.email}'
+  //   `)
+  //   if (!rows.length) {
+  //     throw new Error('Either your email or your password is incorrect')
+  //   }
+  //   const user = rows[0]
+  //   // Validate password
+  //   const isPasswordValid = await bcrypt.compare(
+  //     req.body.password,
+  //     user.password
+  //   )
+  //   if (!isPasswordValid) {
+  //     throw new Error('Either your email or your password is incorrect')
+  //   }
+  //   const token = jwt.sign(
+  //     { user_id: user.user_id, email: user.email },
+  //     process.env.JWT_SECRET
+  //   )
+  //   // Compose response
+  //   res.cookie('jwt', token, {
+  //     httpOnly: true,
+  //     // secure: false,
+  //     // sameSite: 'lax'
+  //   })
+  //   // Respond
+
+  //   res.json({ message: 'You are logged in' })
+  // } catch (err) {
+  //   res.json({ error: err.message })
+  // }
+// })
 
 router.get('/logout', (req, res) => {
   try {
@@ -108,6 +141,7 @@ router.get('/logout', (req, res) => {
       secure: true,
       sameSite: 'none'
     })
+ 
     res.json({ message: 'You are logged out' })
   } catch (err) {
     res.json({ error: err.message })
@@ -115,9 +149,11 @@ router.get('/logout', (req, res) => {
 })
 
 router.get('/profile', async (req, res) => {
+  
   try {
     // Validate Token
-    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    const decodedToken = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET)
+
     if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
       throw new Error('Invalid authentication token')
     }
@@ -125,6 +161,8 @@ router.get('/profile', async (req, res) => {
       SELECT user_id, first_name, last_name, profile_pic, email
       FROM users WHERE user_id = ${decodedToken.user_id}
     `)
+    console.log(userRows[0]);
+    
     res.json(userRows[0])
   } catch (err) {
     res.json({ error: err.message })
@@ -134,7 +172,7 @@ router.get('/profile', async (req, res) => {
 router.patch('/profile', async (req, res) => {
   try {
     // Validate Token
-    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    const decodedToken = jwt.verify(req.cookies.jwt, process.env.JWT_SECRET)
     if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
       throw new Error('Invalid authentication token')
     }
