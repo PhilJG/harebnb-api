@@ -31,6 +31,7 @@ router.post('/houses', async (req, res) => {
         'location, rooms, bathrooms, price, descriptions, and photos are required'
       )
     }
+    
     // Validate photos
     if (!Array.isArray(house_photos)) {
       throw new Error('photos must be an array')
@@ -113,6 +114,7 @@ router.get('/houses', async (req, res) => {
     } else {
       sqlquery += ` ORDER BY price ASC`
     }
+    
     // Run query
     let { rows } = await db.query(sqlquery)
     console.log(sqlquery);
