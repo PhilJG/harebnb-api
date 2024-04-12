@@ -65,7 +65,6 @@ router.post('/houses', async (req, res) => {
     house.house_photos = photosCreated.rows[0].house_photos
     house.reviews = 0
     house.rating = 0
-    console.log(house_photos);
     
     // Respond
     res.json(house)

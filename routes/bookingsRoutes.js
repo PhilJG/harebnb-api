@@ -39,7 +39,6 @@ router.post('/bookings', async (req, res) => {
 
     // Set booked_on date
     const booked_on = new Date().toISOString().slice(0, 10)
-    console.log(booked_on)
 
     // Calculate total nights
     const totalNights = Math.round(
@@ -72,7 +71,6 @@ router.get('/bookings', async (req, res) => {
     if (!userId) {
       userBooking = `SELECT * FROM bookings ORDER BY check_in DESC`
     }
-    console.log(userBooking)
     const { rows } = await db.query(userBooking)
     if (!rows.length) {
       throw new Error(`There is no booking corresponding to this user.`)
@@ -94,7 +92,6 @@ router.get('/bookings/:bookingId', async (req, res) => {
     if (!rows.length) {
       throw new Error(`The booking Id number ${bookingId} does not exist.`)
     }
-    console.log(rows)
     res.json(rows)
   } catch (err) {
     console.error(err.message)
