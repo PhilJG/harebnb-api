@@ -3,6 +3,13 @@ import cookieParser from 'cookie-parser'
 import cors from 'cors'
 import 'dotenv/config'
 
+import authRoute from './routes/authRoutes.js'
+import housesRoutes from './routes/housesRoutes.js'
+import usersRouter from './routes/usersRoutes.js'
+import bookingsRoute from './routes/bookingsRoutes.js'
+import reviewsRoutes from './routes/reviewsRoutes.js'
+import photosRouter from './routes/photosRoutes.js'
+
 const app = express()
 
 app.use(
@@ -12,17 +19,10 @@ app.use(
   })
 )
 
-
 //middleware
 app.use(express.json())
 app.use(cookieParser())
 
-import authRoute from './routes/authRoutes.js'
-import housesRoutes from './routes/housesRoutes.js'
-import usersRouter from './routes/usersRoutes.js'
-import bookingsRoute from './routes/bookingsRoutes.js'
-import reviewsRoutes from './routes/reviewsRoutes.js'
-import photosRouter from './routes/photosRoutes.js'
 
 app.use(photosRouter)
 app.use(reviewsRoutes)

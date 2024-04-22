@@ -59,9 +59,10 @@ router.post('/signup', async (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-  const { password, email, user_id, first_name, last_name } = req.body.data
+  const { password, email} = req.body.data
   
   let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
+  
   try {
     let { rows } = await db.query(dbpassword)
     
