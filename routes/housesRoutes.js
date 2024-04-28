@@ -4,7 +4,6 @@ import jwt from 'jsonwebtoken'
 
 const router = Router()
 
-
 const jwtSecret = process.env.JWT_SECRET
 
 // Create house
@@ -31,7 +30,7 @@ router.post('/houses', async (req, res) => {
         'location, rooms, bathrooms, price, descriptions, and photos are required'
       )
     }
-    
+
     // Validate photos
     if (!Array.isArray(house_photos)) {
       throw new Error('photos must be an array')
@@ -65,7 +64,7 @@ router.post('/houses', async (req, res) => {
     house.house_photos = photosCreated.rows[0].house_photos
     house.reviews = 0
     house.rating = 0
-    
+
     // Respond
     res.json(house)
   } catch (err) {
@@ -107,7 +106,7 @@ router.get('/houses', async (req, res) => {
     // array to string divided by AND
     sqlquery += filters.join(' AND ')
     sqlquery += ') AS distinct_houses'
-    
+
     // add ORDER BY
     if (req.query.sort === 'rooms') {
       sqlquery += ` ORDER BY rooms DESC`
@@ -116,7 +115,7 @@ router.get('/houses', async (req, res) => {
     }
 
     // Execute the query to get houses
-    let { rows: houses } = await db.query(sqlquery);
+    let { rows: houses } = await db.query(sqlquery)
 
     // Add this block to get house_photos for each house
     for (let house of houses) {
@@ -124,11 +123,11 @@ router.get('/houses', async (req, res) => {
         `SELECT * FROM house_photos WHERE house_id = ${house.house_id}`
       )
       // Extract URLs from photosRows and assign to house.house_photos
-      house.house_photos = photosRows.map(photoRow => photoRow.url);
+      house.house_photos = photosRows.map((photoRow) => photoRow.url)
     }
-    
+
     // Return the houses with photos
-    res.json(houses);
+    res.json(houses)
   } catch (err) {
     res.json({ error: err.message })
   }
@@ -151,9 +150,11 @@ router.get('/houses/:house_id', async (req, res) => {
       `SELECT user_id, profile_pic, first_name, last_name FROM users WHERE user_id = ${house.user_id}`
     )
 
+    console.log(hostRows[0])
+
     house.hostRows = {
       user_id: hostRows[0].user_id,
-      picture: hostRows[0].picture,
+      profile_pic: hostRows[0].profile_pic,
       firstName: hostRows[0].first_name,
       lastName: hostRows[0].last_name
     }
@@ -244,13 +245,12 @@ router.patch('/houses/:house_id', async (req, res) => {
 })
 
 router.get('/locations', async (req, res) => {
-  
   try {
     let location = req.body.location
-    let query = location ? 
-    `SELECT DISTINCT(location) FROM houses WHERE location = ${location}`
-     : `SELECT DISTINCT(location) FROM houses`;
-    let { rows } = await db.query(query, location ? [location] : undefined);
+    let query = location
+      ? `SELECT DISTINCT(location) FROM houses WHERE location = ${location}`
+      : `SELECT DISTINCT(location) FROM houses`
+    let { rows } = await db.query(query, location ? [location] : undefined)
     rows = rows.map((r) => r.location)
     res.json(rows)
   } catch (err) {
