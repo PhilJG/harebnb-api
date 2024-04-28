@@ -29,8 +29,16 @@ router.post('/reviews', async (req, res) => {
 
 router.get('/reviews', async (req, res) => {
   try {
-    const { rows } = await db.query(`SELECT * FROM reviews`)
+    const { house_id } = req.query
+    let queryString = `SELECT * FROM reviews`
+    let queryParams = []
 
+    if (house_id) {
+      queryString += ` WHERE house_id = $1`
+      queryParams.push(house_id)
+    }
+
+    const { rows } = await db.query(queryString, queryParams)
     res.json(rows)
   } catch (err) {
     console.error(err.message)
@@ -40,11 +48,13 @@ router.get('/reviews', async (req, res) => {
 
 router.get(`/reviews/:reviewId`, async (req, res) => {
   let reviewId = req.params.reviewId
+  console.log(reviewId)
 
   try {
     const { rows } = await db.query(
       `SELECT * FROM reviews WHERE review_id = ${reviewId}`
     )
+
     res.json(rows)
   } catch (err) {
     console.error(err.message)
