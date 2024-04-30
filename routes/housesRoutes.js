@@ -150,8 +150,6 @@ router.get('/houses/:house_id', async (req, res) => {
       `SELECT user_id, profile_pic, first_name, last_name FROM users WHERE user_id = ${house.user_id}`
     )
 
-    console.log(hostRows[0])
-
     house.hostRows = {
       user_id: hostRows[0].user_id,
       profile_pic: hostRows[0].profile_pic,
@@ -266,8 +264,10 @@ router.get('/listings', async (req, res) => {
       throw new Error('Invalid authentication token')
     }
     // Get houses
-    let query = `SELECT * FROM houses WHERE user_id = ${decodedToken.user_id}`
+    let query = `SELECT * FROM houses LEFT JOIN house_photos ON houses.house_id = house_photos.house_id WHERE user_id = ${decodedToken.user_id}`
+
     let { rows } = await db.query(query)
+
     // Respond
     res.json(rows)
   } catch (err) {
