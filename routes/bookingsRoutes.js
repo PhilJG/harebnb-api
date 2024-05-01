@@ -61,20 +61,39 @@ router.post('/bookings', async (req, res) => {
 
 //routes to GET info from DATA BASE
 router.get('/bookings', async (req, res) => {
-  let userBooking = ''
-  let userId = req.query.user
-
   try {
-    if (userId) {
-      userBooking = `SELECT * FROM bookings WHERE user_id = ${userId} ORDER BY check_in DESC`
+    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+
+    if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
+      throw new Error('Invalid authentication token')
     }
-    if (!userId) {
-      userBooking = `SELECT * FROM bookings ORDER BY check_in DESC`
-    }
-    const { rows } = await db.query(userBooking)
-    if (!rows.length) {
-      throw new Error(`There is no booking corresponding to this user.`)
-    }
+
+    // Get bookings
+    let sqlquery = `
+    SELECT
+    TO_CHAR(bookings.check_in, 'D Mon yyyy') AS check_in,
+    TO_CHAR(bookings.check_out, 'D Mon yyyy') AS check_out,
+    bookings.total_days,
+    bookings.total_price,
+    houses.house_id,
+    houses.price AS price,
+    houses.location,
+    houses.rooms,
+    houses.bathrooms,
+    houses.reviews_count,
+    houses.rating,
+    house_photos.url as house_photos
+  FROM bookings
+  LEFT JOIN houses ON houses.house_id = bookings.house_id
+   LEFT JOIN (
+       SELECT DISTINCT ON (house_id) house_id, url
+       FROM house_photos
+   ) AS house_photos ON house_photos.house_id = houses.house_id
+  WHERE bookings.user_id = ${decodedToken.user_id}
+  ORDER BY bookings.check_in DESC
+`
+    // Respond
+    let { rows } = await db.query(sqlquery)
     res.json(rows)
   } catch (err) {
     console.error(err.message)
