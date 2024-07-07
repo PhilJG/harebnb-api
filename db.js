@@ -8,11 +8,20 @@ const DBURL = process.env.DATABASE_CONNECTION
 
 // Database connection parameters
 
+// const db = new Pool({
+//   ssl: {
+//     rejectUnauthorized: false
+//   },
+//   connectionString: DBURL
+// })
+
 const db = new Pool({
+  
   ssl: {
     rejectUnauthorized: false
   },
-  connectionString: DBURL
+  connectionString: process.env.DBURL + '?sslmode=require',
+
 })
 
 export default db
