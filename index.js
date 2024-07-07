@@ -23,7 +23,6 @@ app.use(
 app.use(express.json())
 app.use(cookieParser())
 
-
 app.use(photosRouter)
 app.use(reviewsRoutes)
 app.use(bookingsRoute)
