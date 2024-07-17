@@ -1,6 +1,8 @@
 import express from 'express'
 import cookieParser from 'cookie-parser'
 import cors from 'cors'
+import helmet from 'helmet'
+
 import 'dotenv/config'
 
 import authRoute from './routes/authRoutes.js'
@@ -16,6 +18,25 @@ app.use(
   cors({
     origin: true,
     credentials: true
+  })
+)
+
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"], // Allow resources to be loaded from the same origin
+      scriptSrc: [
+        "'self'",
+        "'unsafe-inline'"
+        // 'https://your-external-scripts.com'
+      ], // Allow scripts from self, inline scripts, and a specific domain
+      imgSrc: [
+        "'self'",
+        'https://fakerapi.com/images',
+        'https://www.philjgray.ca/light-image-profile.webp'
+      ] // Allow images from self and a specific domain
+      // Add more directives as needed (e.g., styleSrc, connectSrc, etc.)
+    }
   })
 )
 
