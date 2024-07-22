@@ -63,6 +63,7 @@ router.post('/signup', async (req, res) => {
 router.post('/login', async (req, res) => {
   const { password, email } = req.body
   let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
+  console.log(dbpassword)
 
   try {
     let { rows } = await db.query(dbpassword)
@@ -99,7 +100,7 @@ router.get('/logout', (req, res) => {
       sameSite: 'none'
     })
 
-    res.json({ message: 'You are logged out' })
+    res.json({ message: `You are logged out` })
   } catch (err) {
     res.json({ error: err })
   }
