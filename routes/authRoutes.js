@@ -37,6 +37,7 @@ router.post('/signup', async (req, res) => {
     // Hash password
     const salt = await bcrypt.genSalt(10)
     const hashedPassword = await bcrypt.hash(req.body.password, salt)
+
     // Save user
     const { rows } = await db.query(`
       INSERT INTO users (first_name, last_name, email, password, profile_pic)
@@ -52,13 +53,15 @@ router.post('/signup', async (req, res) => {
     delete user.password
 
     // Respond
+    res.status(200).json({ message: 'User signed up successfully' })
   } catch (err) {
-    res.json({ error: err.message })
+    console.error('Error in /signup:', err) // Log the error for debugging
+    res.status(500).json({ error: 'An error occurred while signing up' })
   }
 })
 
 router.post('/login', async (req, res) => {
-  const { password, email } = req.body.data
+  const { password, email } = req.body
   let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
 
   try {
@@ -98,7 +101,7 @@ router.get('/logout', (req, res) => {
 
     res.json({ message: 'You are logged out' })
   } catch (err) {
-    res.json({ error: err.message })
+    res.json({ error: err })
   }
 })
 
