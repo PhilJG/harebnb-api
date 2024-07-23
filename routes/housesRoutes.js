@@ -18,6 +18,8 @@ router.post('/houses', async (req, res) => {
     // Validate fields
     let { location, rooms, bathrooms, price, description, house_photos } =
       req.body
+    console.log(req.body)
+
     if (
       !location ||
       !rooms ||
@@ -27,7 +29,7 @@ router.post('/houses', async (req, res) => {
       !house_photos
     ) {
       throw new Error(
-        'location, rooms, bathrooms, price, descriptions, and photos are required'
+        'location, rooms, bathrooms, price, description, and photos are required'
       )
     }
 
