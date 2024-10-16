@@ -16,7 +16,11 @@ const app = express()
 
 app.use(
   cors({
-    origin: ['https://harebnb-react.onrender.com/', true],
+    origin: [
+      'https://harebnb-react.onrender.com/',
+      'http://localhost:4100/',
+      true
+    ],
     credentials: true
   })
 )
