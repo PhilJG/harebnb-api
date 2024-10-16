@@ -61,21 +61,33 @@ router.post('/signup', async (req, res) => {
 })
 
 router.post('/login', async (req, res) => {
-  const { password, email } = req.body.data
+  const { password, email } = req?.body
   let dbpassword = `SELECT * FROM users WHERE users.email = '${email}'`
 
   try {
     let { rows } = await db.query(dbpassword)
+    console.log(rows)
+
+    if (rows.length === 0) {
+      // throw new Error('User not found incorrect')
+      res.writeHead(403, {
+        'Content-Type': 'application/json'
+      })
+      res.end(JSON.stringify({ error: 'Invalid username' }))
+      return
+    }
 
     const isPswValid = await bcrypt.compare(password, rows[0].password)
 
-    if (rows.length === 0) {
-      throw new Error('User not found incorrect')
-    }
+    console.log(isPswValid)
 
-    if (isPswValid) {
-      console.log('valid')
-
+    if (!isPswValid) {
+      res.writeHead(403, {
+        'Content-Type': 'application/json'
+      })
+      res.end(JSON.stringify({ error: 'Invalid password' }))
+      return
+    } else {
       let payload = {
         email: rows[0].email,
         user_id: rows[0].user_id
