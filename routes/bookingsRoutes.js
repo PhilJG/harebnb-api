@@ -45,13 +45,16 @@ router.post('/bookings', async (req, res) => {
       (checkOutDate - checkInDate) / (1000 * 60 * 60 * 24)
     )
 
+    console.log('checkInDate', checkInDate)
+    console.log('checkOutDate', checkOutDate)
+
     // Calculate total price
     const totalPrice = totalNights * house.price
 
     const { rows } =
       await db.query(`INSERT INTO bookings (user_id, house_id, check_in, check_out, total_days, total_price, booked_on, message)
       VALUES (${user_id}, ${house_id}, '${check_in}', '${check_out}',${totalNights}, ${totalPrice}, '${booked_on}', '${message}')
-      RETURNING * `)
+      RETURNING *`)
 
     res.json(rows)
   } catch (err) {
@@ -94,6 +97,8 @@ router.get('/bookings', async (req, res) => {
 `
     // Respond
     let { rows } = await db.query(sqlquery)
+    console.log(rows)
+
     res.json(rows)
   } catch (err) {
     console.error(err.message)

@@ -74,6 +74,8 @@ router.post('/login', async (req, res) => {
     }
 
     if (isPswValid) {
+      console.log('valid')
+
       let payload = {
         email: rows[0].email,
         user_id: rows[0].user_id

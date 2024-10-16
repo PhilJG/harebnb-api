@@ -18,7 +18,6 @@ router.post('/houses', async (req, res) => {
     // Validate fields
     let { location, rooms, bathrooms, price, description, house_photos } =
       req.body
-    console.log(req.body)
 
     if (
       !location ||
@@ -50,6 +49,7 @@ router.post('/houses', async (req, res) => {
       RETURNING *
     `)
     let house = houseCreated.rows[0]
+    console.log(house)
 
     // Create photos
     let photosQuery = 'INSERT INTO house_photos (house_id, url) VALUES '
@@ -60,7 +60,9 @@ router.post('/houses', async (req, res) => {
         photosQuery += `(${house.house_id}, '${p}'), `
       }
     })
+
     photosQuery += 'RETURNING *'
+    console.log(photosQuery)
     let photosCreated = await db.query(photosQuery)
     // Compose response
     house.house_photos = photosCreated.rows[0].house_photos
@@ -272,6 +274,39 @@ router.get('/listings', async (req, res) => {
 
     // Respond
     res.json(rows)
+  } catch (err) {
+    res.json({ error: err.message })
+  }
+})
+
+router.delete('/houses/:house_id', async (req, res) => {
+  try {
+    // Validate Token
+    const decodedToken = jwt.verify(req.cookies.jwt, jwtSecret)
+    if (!decodedToken || !decodedToken.user_id || !decodedToken.email) {
+      throw new Error('Invalid authentication token')
+    }
+
+    //Delete reviews
+    await db.query(
+      `DELETE FROM reviews WHERE house_id = ${req.params.house_id}`
+    )
+
+    // Delete bookings
+    await db.query(
+      `DELETE FROM bookings WHERE house_id = ${req.params.house_id}`
+    )
+
+    // Delete photos
+    await db.query(
+      `DELETE FROM house_photos WHERE house_id = ${req.params.house_id}`
+    )
+
+    // Delete house
+    const { rows } = await db.query(
+      `DELETE FROM houses WHERE house_id = ${req.params.house_id} RETURNING *`
+    )
+    res.json(rows[0])
   } catch (err) {
     res.json({ error: err.message })
   }

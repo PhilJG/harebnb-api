@@ -16,7 +16,7 @@ const app = express()
 
 app.use(
   cors({
-    origin: true,
+    origin: '*',
     credentials: true
   })
 )
@@ -53,5 +53,5 @@ app.use(usersRouter)
 app.use(authRoute)
 
 app.listen(process.env.PORT || 4100, () => {
-  console.log(`Harebnb server is running on ${process.env.PORT || 4100}`)
+  console.log(`Harebnb API server is running on ${process.env.PORT || 4100}`)
 })

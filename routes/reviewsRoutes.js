@@ -64,6 +64,7 @@ router.get(`/reviews/:reviewId`, async (req, res) => {
     const { rows } = await db.query(
       `SELECT * FROM reviews WHERE review_id = ${reviewId}`
     )
+    console.log('rows', rows)
 
     res.json(rows)
   } catch (err) {
