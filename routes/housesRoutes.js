@@ -246,20 +246,6 @@ router.patch('/houses/:house_id', async (req, res) => {
   }
 })
 
-router.get('/locations', async (req, res) => {
-  try {
-    let location = req.body.location
-    let query = location
-      ? `SELECT DISTINCT(location) FROM houses WHERE location = ${location}`
-      : `SELECT DISTINCT(location) FROM houses`
-    let { rows } = await db.query(query, location ? [location] : undefined)
-    rows = rows.map((r) => r.location)
-    res.json(rows)
-  } catch (err) {
-    res.json({ error: err.message })
-  }
-})
-
 router.get('/listings', async (req, res) => {
   try {
     // Validate Token
